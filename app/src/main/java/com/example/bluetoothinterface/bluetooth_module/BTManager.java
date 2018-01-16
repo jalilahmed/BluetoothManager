@@ -1,19 +1,48 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
+import android.util.Log;
 
 import com.example.bluetoothinterface.interfaces.IBluetooth;
+
+import java.util.ArrayList;
 
 /**
  * Created by jalil on 1/12/2018.
  */
 
 public class BTManager implements IBluetooth {
+    private static final String TAG = "BTManager";
 
     private Activity myMainActivity;
     private BluetoothAdapter myBluetooth = BluetoothAdapter.getDefaultAdapter();
+    private ArrayList<BluetoothDevice> foundBTDevices = new ArrayList<>();
+
+    private BroadcastReceiver discoverDevicesReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            Log.d(TAG, "discoverDevicesReceiver :: onReceive Found");
+
+            // Checking if any action is found by the IntentFilter
+            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                foundBTDevices.add(device);
+                Log.d(TAG, "discoverDevicesReceiver :: onReceive" + device.getName() + ", " + device.getAddress());
+            }
+            else {
+                myMainActivity.unregisterReceiver(discoverDevicesReceiver);
+            }
+        }
+    };
 
     /*
     * Default constructor for passing calling Activity class
@@ -22,16 +51,17 @@ public class BTManager implements IBluetooth {
     public BTManager (Activity callingActivity) {
         super();
         this.myMainActivity = callingActivity;
+        Log.d(TAG, "Creating an instance of BTManager");
     }
 
     /* Checks if bluetooth is already on */
     public Boolean checkBluetooth () {
-
+        Log.d(TAG, "Checking if bluetooth is already on");
         return myBluetooth.isEnabled();
     }
 
     /* Initialize bluetooth on user request */
-    public String setupBluetooth(Activity someActivity) {
+    public String setupBluetooth() {
 
         // Turn on Bluetooth of Device Here
         if (myBluetooth == null) {
@@ -58,5 +88,35 @@ public class BTManager implements IBluetooth {
             // TODO: Handle the exception ??
         }
 
+    }
+
+    public void discoverDevices() {
+        Log.d(TAG, "discoverDevices :: started");
+
+        if (myBluetooth.isDiscovering()) {
+            myBluetooth.cancelDiscovery();
+        }
+
+        Log.d(TAG, "discoverDevices :: checking permission");
+        //check BT permissions in manifest
+        checkBTPermissions();
+
+        Log.d(TAG, "discoverDevices :: starting Discovery");
+        myBluetooth.startDiscovery();
+        IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        myMainActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
+    }
+
+    private void checkBTPermissions() {
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
+            int permissionCheck = myMainActivity.checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION");
+            permissionCheck += myMainActivity.checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION");
+            if (permissionCheck != 0) {
+
+                myMainActivity.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
+            }
+        }else{
+            Log.d(TAG, "checkBTPermissions: No need to check permissions. SDK version < LOLLIPOP.");
+        }
     }
 }
