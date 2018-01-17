@@ -12,15 +12,13 @@ import android.widget.TextView;
 import com.example.bluetoothinterface.bluetooth_module.BTManager;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     IBluetooth myInterface = new BTManager(MainActivity.this);
-
-    BluetoothAdapter myBluetooth = BluetoothAdapter.getDefaultAdapter();
-    Set<BluetoothDevice> pairedDevices = myBluetooth.getBondedDevices();
 
     Button btn, discoveryBtn;
     TextView tv, discoverytv;
@@ -31,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btn = findViewById(R.id.button);
-        discoveryBtn = findViewById(R.id.discoverBtn); discoveryBtn.setEnabled(false);
+        discoveryBtn = findViewById(R.id.discoverBtn);
         tv = findViewById(R.id.textView);
         discoverytv = findViewById(R.id.discoverytv);
 
@@ -42,20 +40,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        discoverytv.setOnClickListener(new View.OnClickListener() {
+        discoveryBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startDiscovery(view);
+                String gotBack = startDiscovery();
+                discoverytv.setText(gotBack);
             }
         });
     }
 
     public void setup (View view) {
-
         if (!myInterface.checkBluetooth()) {
             String result = myInterface.setupBluetooth();
             tv.setText(result);
-            discoveryBtn.setEnabled(true);
         }
         else {
             myInterface.disableBluetooth();
@@ -63,17 +60,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void startDiscovery(View view) {
-        myInterface.discoverDevices();
-
-        if (pairedDevices.size() > 0) {
-            // There are paired devices. Get the name and address of each paired device.
-            for (BluetoothDevice device : pairedDevices) {
-                Log.d(TAG, "Paired device" + device.getName() + ", " + device.getAddress());
-            }
-        }
-        else {
-            Log.d(TAG, "No Paired devices found ");
-        }
+    public String startDiscovery() {
+        ArrayList<BluetoothDevice> bondedDevices =  myInterface.discoverDevices();
+        System.out.println("startDiscovery" + bondedDevices.toString());
+        return "Went into startDiscovery";
     }
 }

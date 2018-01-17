@@ -8,12 +8,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Address;
 import android.os.Build;
 import android.util.Log;
 
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by jalil on 1/12/2018.
@@ -30,7 +32,6 @@ public class BTManager implements IBluetooth {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            Log.d(TAG, "discoverDevicesReceiver :: onReceive Found");
 
             // Checking if any action is found by the IntentFilter
             if (action.equals(BluetoothDevice.ACTION_FOUND)) {
@@ -38,7 +39,7 @@ public class BTManager implements IBluetooth {
                 foundBTDevices.add(device);
                 Log.d(TAG, "discoverDevicesReceiver :: onReceive" + device.getName() + ", " + device.getAddress());
             }
-            else {
+            else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
                 myMainActivity.unregisterReceiver(discoverDevicesReceiver);
             }
         }
@@ -62,7 +63,7 @@ public class BTManager implements IBluetooth {
 
     /* Initialize bluetooth on user request */
     public String setupBluetooth() {
-
+        Log.i(TAG, "setupBluetooth :: started");
         // Turn on Bluetooth of Device Here
         if (myBluetooth == null) {
             return "Device has no Bluetooth";
@@ -90,8 +91,8 @@ public class BTManager implements IBluetooth {
 
     }
 
-    public void discoverDevices() {
-        Log.d(TAG, "discoverDevices :: started");
+    public ArrayList<BluetoothDevice> discoverDevices() {
+        Log.i(TAG, "discoverDevices :: started");
 
         if (myBluetooth.isDiscovering()) {
             myBluetooth.cancelDiscovery();
@@ -103,8 +104,12 @@ public class BTManager implements IBluetooth {
 
         Log.d(TAG, "discoverDevices :: starting Discovery");
         myBluetooth.startDiscovery();
-        IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        IntentFilter discoverDevicesIntent = new IntentFilter();
+        discoverDevicesIntent .addAction(BluetoothDevice.ACTION_FOUND);
+        discoverDevicesIntent .addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         myMainActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
+
+        return foundBTDevices;
     }
 
     private void checkBTPermissions() {
