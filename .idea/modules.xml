@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://C:\Users\prash\Documents\Job\BluetoothManager\BluetoothInterface.iml" filepath="C:\Users\prash\Documents\Job\BluetoothManager\BluetoothInterface.iml" />
       <module fileurl="file://$PROJECT_DIR$/BluetoothManager.iml" filepath="$PROJECT_DIR$/BluetoothManager.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
