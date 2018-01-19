@@ -1,0 +1,11 @@
+package com.example.bluetoothinterface.interfaces;
+
+import android.bluetooth.BluetoothDevice;
+
+/**
+ * Created by Prashant on 19/01/2018.
+ */
+
+public interface DiscoveryCallback {
+    void onDevice(BluetoothDevice device);
+}

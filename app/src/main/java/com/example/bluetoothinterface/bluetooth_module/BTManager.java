@@ -8,14 +8,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.location.Address;
 import android.os.Build;
 import android.util.Log;
 
+import com.example.bluetoothinterface.interfaces.DiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by jalil on 1/12/2018.
@@ -26,7 +26,55 @@ public class BTManager implements IBluetooth {
 
     private Activity myMainActivity;
     private BluetoothAdapter myBluetooth = BluetoothAdapter.getDefaultAdapter();
-    private ArrayList<BluetoothDevice> foundBTDevices = new ArrayList<>();
+    private DiscoveryCallback discoveryCallback;
+
+    /*
+    * Default constructor for passing calling Activity class
+    * params(Activity) - The activity class creating instance of BTManager
+    * */
+    public BTManager (Activity callingActivity) {
+        this.myMainActivity = callingActivity;
+        this.discoveryCallback = null;
+    }
+
+    /* Checks if bluetooth is already on */
+    public Boolean isEnabled() {
+        return myBluetooth.isEnabled();
+    }
+
+    /* Enable bluetooth on user request */
+    public void enable() {
+        if (myBluetooth != null) {
+            try {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                myMainActivity.startActivityForResult(enableBtIntent, 1);
+            } catch (Exception e) {
+                // TODO: Handle the exception ??
+                Log.d(TAG, e.toString());
+            }
+        }
+    }
+
+    /* Disable bluetooth on user request */
+    public void disable(){
+        if(myBluetooth != null) {
+            if (isEnabled()) {
+                myBluetooth.disable();
+            }
+        }
+    }
+
+    /* Get all paired devices */
+    public ArrayList<String> getPairedDevices(){
+        Set<BluetoothDevice> bondedDevices = myBluetooth.getBondedDevices();
+        ArrayList<String> pairedDevices = new ArrayList<>();
+
+        for (BluetoothDevice device : bondedDevices) {
+            pairedDevices.add(device.getName());
+        }
+
+        return pairedDevices;
+    }
 
     private BroadcastReceiver discoverDevicesReceiver = new BroadcastReceiver() {
         @Override
@@ -35,9 +83,13 @@ public class BTManager implements IBluetooth {
 
             // Checking if any action is found by the IntentFilter
             if (action.equals(BluetoothDevice.ACTION_FOUND)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                foundBTDevices.add(device);
-                Log.d(TAG, "discoverDevicesReceiver :: onReceive" + device.getName() + ", " + device.getAddress());
+                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                myMainActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        discoveryCallback.onDevice(device);
+                    }
+                });
             }
             else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
                 myMainActivity.unregisterReceiver(discoverDevicesReceiver);
@@ -45,71 +97,25 @@ public class BTManager implements IBluetooth {
         }
     };
 
-    /*
-    * Default constructor for passing calling Activity class
-    * params(Activity) - The activity class creating instance of BTManager
-    * */
-    public BTManager (Activity callingActivity) {
-        super();
-        this.myMainActivity = callingActivity;
-        Log.d(TAG, "Creating an instance of BTManager");
-    }
-
-    /* Checks if bluetooth is already on */
-    public Boolean checkBluetooth () {
-        Log.d(TAG, "Checking if bluetooth is already on");
-        return myBluetooth.isEnabled();
-    }
-
-    /* Initialize bluetooth on user request */
-    public String setupBluetooth() {
-        Log.i(TAG, "setupBluetooth :: started");
-        // Turn on Bluetooth of Device Here
-        if (myBluetooth == null) {
-            return "Device has no Bluetooth";
-        }
-        try {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            myMainActivity.startActivityForResult(enableBtIntent, 1);
-        } catch (Exception e) {
-            return e.toString();
-        }
-
-        return "Bluetooth enabled";
-    }
-
-    /* Disable bluetooth on user request */
-    public void disableBluetooth() {
-
-        try {
-            if (myBluetooth.isEnabled()) {
-                myBluetooth.disable();
-            }
-        } catch (Exception e) {
-            // TODO: Handle the exception ??
-        }
-
-    }
-
-    public ArrayList<BluetoothDevice> discoverDevices() {
-        Log.i(TAG, "discoverDevices :: started");
+    public void discoverDevices() {
 
         if (myBluetooth.isDiscovering()) {
             myBluetooth.cancelDiscovery();
         }
 
-        Log.d(TAG, "discoverDevices :: checking permission");
         //check BT permissions in manifest
         checkBTPermissions();
 
-        Log.d(TAG, "discoverDevices :: starting Discovery");
-        myBluetooth.startDiscovery();
         IntentFilter discoverDevicesIntent = new IntentFilter();
-        discoverDevicesIntent .addAction(BluetoothDevice.ACTION_FOUND);
-        discoverDevicesIntent .addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        myMainActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
+        discoverDevicesIntent.addAction(BluetoothDevice.ACTION_FOUND);
+        discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
-        return foundBTDevices;
+        myMainActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
+        myBluetooth.startDiscovery();
+    }
+
+    public void setDiscoveryCallback(DiscoveryCallback discoveryCallback){
+        this.discoveryCallback = discoveryCallback;
     }
 
     private void checkBTPermissions() {

@@ -1,7 +1,5 @@
 package com.example.bluetoothinterface.interfaces;
 
-import android.bluetooth.BluetoothDevice;
-
 import java.util.ArrayList;
 
 /**
@@ -11,8 +9,9 @@ import java.util.ArrayList;
 public interface IBluetooth {
 
     //Method Declarations
-    Boolean checkBluetooth();
-    String setupBluetooth();
-    void disableBluetooth();
-    ArrayList<BluetoothDevice> discoverDevices();
+    Boolean isEnabled();
+    void enable();
+    void disable();
+    ArrayList<String> getPairedDevices();
+    void discoverDevices();
 }
