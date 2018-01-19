@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BluetoothInterface</string>
+    <string name="discovery_devices">Discover Devices</string>
+    <string name="toggle_bluetooth">Toggle Bluetooth</string>
 </resources>
