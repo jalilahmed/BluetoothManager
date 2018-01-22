@@ -4,18 +4,22 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.os.ParcelUuid;
 import android.util.Log;
 
 import com.example.bluetoothinterface.interfaces.DiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by jalil on 1/12/2018.
@@ -25,8 +29,11 @@ public class BTManager implements IBluetooth {
     private static final String TAG = "BTManager";
 
     private Activity myMainActivity;
-    private BluetoothAdapter myBluetooth = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothAdapter myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothSocket mySocket;
+    private BluetoothDevice myDevice;
     private DiscoveryCallback discoveryCallback;
+    private ArrayList<BluetoothDevice> allBluetoothDevices = new ArrayList<>();
 
     /*
     * Default constructor for passing calling Activity class
@@ -39,12 +46,12 @@ public class BTManager implements IBluetooth {
 
     /* Checks if bluetooth is already on */
     public Boolean isEnabled() {
-        return myBluetooth.isEnabled();
+        return myBluetoothAdapter.isEnabled();
     }
 
     /* Enable bluetooth on user request */
     public void enable() {
-        if (myBluetooth != null) {
+        if (myBluetoothAdapter != null) {
             try {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 myMainActivity.startActivityForResult(enableBtIntent, 1);
@@ -57,50 +64,68 @@ public class BTManager implements IBluetooth {
 
     /* Disable bluetooth on user request */
     public void disable(){
-        if(myBluetooth != null) {
+        if(myBluetoothAdapter != null) {
             if (isEnabled()) {
-                myBluetooth.disable();
+                myBluetoothAdapter.disable();
             }
         }
     }
 
     /* Get all paired devices */
-    public ArrayList<String> getPairedDevices(){
-        Set<BluetoothDevice> bondedDevices = myBluetooth.getBondedDevices();
-        ArrayList<String> pairedDevices = new ArrayList<>();
+    public List<BluetoothDevice> getPairedDevices(){
+        List<BluetoothDevice> bondedDevices = new ArrayList<>();
+        bondedDevices.addAll(myBluetoothAdapter.getBondedDevices());
+        allBluetoothDevices.addAll(myBluetoothAdapter.getBondedDevices());
 
-        for (BluetoothDevice device : bondedDevices) {
-            pairedDevices.add(device.getName());
-        }
-
-        return pairedDevices;
+        return bondedDevices;
     }
 
+    /*
+    * This receiver is used for discovering bluetooth devices,
+    * It provides the ability to set a callback for different actions by invoking setDiscoveryCallback()
+    * Cases used,
+    * Found a device - onDevice(device) callback to get the found bluetooth device
+    * Discovery end  - unregister this broadcast receiver
+    * */
     private BroadcastReceiver discoverDevicesReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
+            String action = intent.getAction();
 
-            // Checking if any action is found by the IntentFilter
-            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
-                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                myMainActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        discoveryCallback.onDevice(device);
+            if (action != null) {
+
+                if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                    final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    allBluetoothDevices.add(device);
+
+                    if (discoveryCallback != null) {
+                        myMainActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                discoveryCallback.onDevice(device);
+                            }
+                        });
                     }
-                });
-            }
-            else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-                myMainActivity.unregisterReceiver(discoverDevicesReceiver);
+                }
+                else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
+                    context.unregisterReceiver(discoverDevicesReceiver);
+                    if (discoveryCallback != null) {
+                        myMainActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                discoveryCallback.onFinish();
+                            }
+                        });
+                    }
+                }
             }
         }
     };
 
     public void discoverDevices() {
 
-        if (myBluetooth.isDiscovering()) {
-            myBluetooth.cancelDiscovery();
+        if (myBluetoothAdapter.isDiscovering()) {
+            myBluetoothAdapter.cancelDiscovery();
         }
 
         //check BT permissions in manifest
@@ -108,14 +133,33 @@ public class BTManager implements IBluetooth {
 
         IntentFilter discoverDevicesIntent = new IntentFilter();
         discoverDevicesIntent.addAction(BluetoothDevice.ACTION_FOUND);
+        discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
         myMainActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
-        myBluetooth.startDiscovery();
+        myBluetoothAdapter.startDiscovery();
     }
 
-    public void setDiscoveryCallback(DiscoveryCallback discoveryCallback){
+//    public void connectByName(String bluetoothName) {
+//        for (BluetoothDevice device : allBluetoothDevices) {
+//            if (device.getName().equals(bluetoothName)) {
+//                Log.d(TAG, "Found the device in the list, " + device.getName());
+//                connectByDevice(device);
+//                return;
+//            }
+//        }
+//    }
+
+    public void connectByDevice(BluetoothDevice device) {
+        new ConnectThread(device).start();
+    }
+
+    public void setDiscoveryCallback(DiscoveryCallback discoveryCallback) {
         this.discoveryCallback = discoveryCallback;
+    }
+
+    public void removeDiscoveryCallback(){
+        this.discoveryCallback = null;
     }
 
     private void checkBTPermissions() {
@@ -128,6 +172,45 @@ public class BTManager implements IBluetooth {
             }
         }else{
             Log.d(TAG, "checkBTPermissions: No need to check permissions. SDK version < LOLLIPOP.");
+        }
+    }
+
+    private class ConnectThread extends Thread {
+
+        ConnectThread(BluetoothDevice device) {
+            Log.d(TAG,"Connect Thread class called");
+            BTManager.this.myDevice = device;
+            ParcelUuid deviceUUIDS[] = device.getUuids();
+            String uuid = deviceUUIDS[0].toString();
+            try {
+                BTManager.this.mySocket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
+            } catch (IOException e) {
+                // TODO
+                Log.d(TAG, "Catch exception " + e.toString());
+            }
+        }
+
+        public void run() {
+            myBluetoothAdapter.cancelDiscovery();
+
+            try {
+                mySocket.connect();
+                Log.d(TAG, "Connected to socket without errors");
+
+//                if (discoveryCallback !=null) {
+//                    myMainActivity.runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() { discoveryCallback.onConnect(myDevice); }
+//                    });
+//                }
+            } catch (IOException connectException) {
+                // Unable to connect; close the socket and return.
+                try {
+                    mySocket.close();
+                } catch (IOException closeException) {
+                    Log.e(TAG, "Could not close the client socket", closeException);
+                }
+            }
         }
     }
 }
