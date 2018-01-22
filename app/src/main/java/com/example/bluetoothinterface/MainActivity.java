@@ -63,13 +63,13 @@ public class MainActivity extends AppCompatActivity {
         btDevicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
                 String clickedItem = displayDevices.get(i);
+                System.out.println("in onItemClick(): " + clickedItem);
                 for (BluetoothDevice device : allDevicesWithinRange) {
                     if (device.getName().equals(clickedItem)) {
+                        System.out.println("Trying to Connect to this: " + device.getName());
                         myInterface.connectByDevice(device);
                     }
-                    Log.d(TAG, device.getName());
                 }
             }
         });
@@ -95,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
         myInterface.setDiscoveryCallback(new DiscoveryCallback() {
             @Override
             public void onDevice(BluetoothDevice device) {
-                allDevicesWithinRange.add(device);
                 try {
                     if (device.getName() != null) {
+                        allDevicesWithinRange.add(device);
                         System.out.println("Device name is " + device.getName() + ",  " + device.getAddress());
                         displayDevices.add(device.getName());
                     }

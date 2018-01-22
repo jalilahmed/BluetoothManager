@@ -27,10 +27,11 @@ import java.util.UUID;
 
 public class BTManager implements IBluetooth, Cloneable {
     private static final String TAG = "BTManager";
+    private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     //Declarations
-    private BluetoothSocket mySocket;
-    private BluetoothDevice myDevice;
+//    private BluetoothSocket mySocket;
+//    private BluetoothDevice myDevice;
     private DiscoveryCallback discoveryCallback;
 
     //Definitions
@@ -166,6 +167,7 @@ public class BTManager implements IBluetooth, Cloneable {
 //    }
 
     public void connectByDevice(BluetoothDevice device) {
+        System.out.println("In BTManager::connectByDevice: " + device.getName());
         new ConnectThread(device).start();
     }
 
@@ -190,39 +192,38 @@ public class BTManager implements IBluetooth, Cloneable {
     }
 
     private class ConnectThread extends Thread {
+        private final BluetoothDevice myDevice;
+        private BluetoothSocket mySocket;
+        private final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
         ConnectThread(BluetoothDevice device) {
-            Log.d(TAG,"Connect Thread class called");
-            BTManager.this.myDevice = device;
-            ParcelUuid deviceUUIDS[] = device.getUuids();
-            String uuid = deviceUUIDS[0].toString();
+            System.out.println("Connect Thread class called: " + device.getAddress());
+            myDevice = device;
+            BluetoothSocket tmp = null;
             try {
-                BTManager.this.mySocket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
+                System.out.println("trying to open socket");
+                tmp = device.createRfcommSocketToServiceRecord(UUID_SPP);
             } catch (IOException e) {
-                // TODO
-                Log.d(TAG, "Catch exception " + e.toString());
+                System.out.println("Catch exception " + e.toString());
             }
+            mySocket = tmp;
         }
 
         public void run() {
             myBluetoothAdapter.cancelDiscovery();
-
             try {
                 mySocket.connect();
-                Log.d(TAG, "Connected to socket without errors");
-
-//                if (discoveryCallback !=null) {
-//                    someActivity.runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() { discoveryCallback.onConnect(myDevice); }
-//                    });
-//                }
+                System.out.println("Connected to socket without errors");
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and return.
                 try {
-                    mySocket.close();
-                } catch (IOException closeException) {
-                    Log.e(TAG, "Could not close the client socket", closeException);
+                    System.out.println("trying fallback...");
+                    mySocket = (BluetoothSocket) myDevice.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(myDevice,1);
+                    mySocket.connect();
+                    System.out.println("Connected");
+                }
+                catch (Exception e2) {
+                    System.out.println("Couldn't establish Bluetooth connection!");
                 }
             }
         }
