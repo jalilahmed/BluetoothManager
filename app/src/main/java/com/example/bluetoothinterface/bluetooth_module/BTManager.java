@@ -25,36 +25,50 @@ import java.util.UUID;
  * Created by jalil on 1/12/2018.
  */
 
-public class BTManager implements IBluetooth {
+public class BTManager implements IBluetooth, Cloneable {
     private static final String TAG = "BTManager";
 
-    private Activity myMainActivity;
-    private BluetoothAdapter myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    //Declarations
     private BluetoothSocket mySocket;
     private BluetoothDevice myDevice;
     private DiscoveryCallback discoveryCallback;
+
+    //Definitions
+    private BluetoothAdapter myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private ArrayList<BluetoothDevice> allBluetoothDevices = new ArrayList<>();
 
     /*
     * Default constructor for passing calling Activity class
-    * params(Activity) - The activity class creating instance of BTManager
     * */
-    public BTManager (Activity callingActivity) {
-        this.myMainActivity = callingActivity;
-        this.discoveryCallback = null;
+    //Creating BTManger as Singleton
+    private BTManager () {}
+
+    public static BTManager getInstance () {
+        return Holder.INSTANCE;
     }
 
+    // Singleton Holder Idiom
+    private static class Holder{
+        static final BTManager INSTANCE = new BTManager();
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    /* Functions */
     /* Checks if bluetooth is already on */
     public Boolean isEnabled() {
         return myBluetoothAdapter.isEnabled();
     }
 
     /* Enable bluetooth on user request */
-    public void enable() {
+    public void enable(Activity someActivity) {
         if (myBluetoothAdapter != null) {
             try {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                myMainActivity.startActivityForResult(enableBtIntent, 1);
+                someActivity.startActivityForResult(enableBtIntent, 1);
             } catch (Exception e) {
                 // TODO: Handle the exception ??
                 Log.d(TAG, e.toString());
@@ -76,7 +90,6 @@ public class BTManager implements IBluetooth {
         List<BluetoothDevice> bondedDevices = new ArrayList<>();
         bondedDevices.addAll(myBluetoothAdapter.getBondedDevices());
         allBluetoothDevices.addAll(myBluetoothAdapter.getBondedDevices());
-
         return bondedDevices;
     }
 
@@ -87,9 +100,12 @@ public class BTManager implements IBluetooth {
     * Found a device - onDevice(device) callback to get the found bluetooth device
     * Discovery end  - unregister this broadcast receiver
     * */
-    private BroadcastReceiver discoverDevicesReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
+    private BroadcastReceiver discoverDevicesReceiver;
+
+    public void discoverDevices(final Activity someActivity) {
+        discoverDevicesReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
             if (action != null) {
@@ -99,7 +115,7 @@ public class BTManager implements IBluetooth {
                     allBluetoothDevices.add(device);
 
                     if (discoveryCallback != null) {
-                        myMainActivity.runOnUiThread(new Runnable() {
+                        someActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 discoveryCallback.onDevice(device);
@@ -109,34 +125,33 @@ public class BTManager implements IBluetooth {
                 }
                 else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
                     context.unregisterReceiver(discoverDevicesReceiver);
+
                     if (discoveryCallback != null) {
-                        myMainActivity.runOnUiThread(new Runnable() {
+                        someActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                discoveryCallback.onFinish();
+                            discoveryCallback.onFinish();
                             }
                         });
                     }
                 }
             }
-        }
-    };
-
-    public void discoverDevices() {
+            }
+        };
 
         if (myBluetoothAdapter.isDiscovering()) {
             myBluetoothAdapter.cancelDiscovery();
         }
 
         //check BT permissions in manifest
-        checkBTPermissions();
+        checkBTPermissions(someActivity);
 
         IntentFilter discoverDevicesIntent = new IntentFilter();
         discoverDevicesIntent.addAction(BluetoothDevice.ACTION_FOUND);
         discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
-        myMainActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
+        someActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
         myBluetoothAdapter.startDiscovery();
     }
 
@@ -162,13 +177,12 @@ public class BTManager implements IBluetooth {
         this.discoveryCallback = null;
     }
 
-    private void checkBTPermissions() {
+    private void checkBTPermissions(Activity someActivity) {
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
-            int permissionCheck = myMainActivity.checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION");
-            permissionCheck += myMainActivity.checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION");
+            int permissionCheck = someActivity.checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION");
+            permissionCheck += someActivity.checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION");
             if (permissionCheck != 0) {
-
-                myMainActivity.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
+                someActivity.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
             }
         }else{
             Log.d(TAG, "checkBTPermissions: No need to check permissions. SDK version < LOLLIPOP.");
@@ -198,7 +212,7 @@ public class BTManager implements IBluetooth {
                 Log.d(TAG, "Connected to socket without errors");
 
 //                if (discoveryCallback !=null) {
-//                    myMainActivity.runOnUiThread(new Runnable() {
+//                    someActivity.runOnUiThread(new Runnable() {
 //                        @Override
 //                        public void run() { discoveryCallback.onConnect(myDevice); }
 //                    });

@@ -5,12 +5,14 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
 import com.example.bluetoothinterface.bluetooth_module.BTManager;
 import com.example.bluetoothinterface.interfaces.DiscoveryCallback;
+import com.example.bluetoothinterface.interfaces.IBluetooth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     List<BluetoothDevice> allDevicesWithinRange = new ArrayList<>();
 
     // Bluetooth objects
-    BTManager myInterface = new BTManager(MainActivity.this);
+    IBluetooth myInterface = BTManager.getInstance();
 
     // UI Elements
     Button startDiscoveryScanBtn;
@@ -43,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (!myInterface.isEnabled()) {
             try {
-                myInterface.enable();
+                System.out.println("SomethingSomething");
+                myInterface.enable(MainActivity.this);
             }
             catch (Exception e) {
                 Log.d(TAG, e.toString());
@@ -57,19 +60,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        btDevicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//
-//                String clickedItem = displayDevices.get(i);
-//                for (BluetoothDevice device : allDevicesWithinRange) {
-//                    if (device.getName().equals(clickedItem)) {
-//                        myInterface.connectByDevice(device);
-//                    }
-//                    Log.d(TAG, device.getName());
-//                }
-//            }
-//        });
+        btDevicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                String clickedItem = displayDevices.get(i);
+                for (BluetoothDevice device : allDevicesWithinRange) {
+                    if (device.getName().equals(clickedItem)) {
+                        myInterface.connectByDevice(device);
+                    }
+                    Log.d(TAG, device.getName());
+                }
+            }
+        });
     }
 
     public void startDiscovery() {
@@ -85,10 +88,8 @@ public class MainActivity extends AppCompatActivity {
         btDevicesListViewAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, displayDevices);
         btDevicesListView.setAdapter(btDevicesListViewAdapter);
 
-        myInterface.discoverDevices();
-        // Is working fine until here
 
-        myInterface.discoverDevices();
+        myInterface.discoverDevices(MainActivity.this);
         startDiscoveryScanBtn.setEnabled(false);
 
         myInterface.setDiscoveryCallback(new DiscoveryCallback() {
@@ -96,12 +97,10 @@ public class MainActivity extends AppCompatActivity {
             public void onDevice(BluetoothDevice device) {
                 allDevicesWithinRange.add(device);
                 try {
-                    Log.d(TAG, "Device name is " + device.getName() + ",  " + device.getAddress());
-//                    if (device.getName() != null) {
-//                        displayDevices.add(device.getName());
-//                    } else {
-//                        Log.d(TAG, "Error in getting device name ");
-//                    }
+                    if (device.getName() != null) {
+                        System.out.println("Device name is " + device.getName() + ",  " + device.getAddress());
+                        displayDevices.add(device.getName());
+                    }
                 } catch (Exception e) {
                     Log.d(TAG, "Exception for getting device name, " + e.toString());
                 }

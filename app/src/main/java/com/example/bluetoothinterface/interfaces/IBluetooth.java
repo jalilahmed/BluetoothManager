@@ -1,5 +1,6 @@
 package com.example.bluetoothinterface.interfaces;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 
 import java.util.List;
@@ -11,11 +12,13 @@ import java.util.List;
 public interface IBluetooth {
 
     //Method Declarations
+    void setDiscoveryCallback(DiscoveryCallback discoveryCallback);
+    void removeDiscoveryCallback();
     Boolean isEnabled();
-    void enable();
+    void enable(Activity someActivity);
     void disable();
     List<BluetoothDevice> getPairedDevices();
-    void discoverDevices();
+    void discoverDevices(Activity someActivity);
 //    void connectByName(String bluetoothName);
     void connectByDevice(BluetoothDevice device);
 }
