@@ -3,6 +3,7 @@ package com.example.bluetoothinterface.interfaces;
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,14 +12,18 @@ import java.util.List;
 
 public interface IBluetooth {
 
-    //Method Declarations
-    void setDiscoveryCallback(DiscoveryCallback discoveryCallback);
-    void removeDiscoveryCallback();
-    Boolean isEnabled();
+    // BT Module methods
+    boolean isEnabled();
     void enable(Activity someActivity);
-    void disable();
     List<BluetoothDevice> getPairedDevices();
     void discoverDevices(Activity someActivity);
-//    void connectByName(String bluetoothName);
-    void connectByDevice(BluetoothDevice device);
+    void connectToMiPods(ArrayList<BluetoothDevice> miPodsDevices, Activity someActivity);
+
+    // Discovery Callback methods
+    void setDiscoveryCB(IDiscoveryCallback discoveryCB);
+    void removeDiscoveryCallback();
+
+    // Communication Callback methods
+    void setCommunicationCB(ICommunicationCallback communicationCB);
+    void removeCommunicationCallback();
 }
