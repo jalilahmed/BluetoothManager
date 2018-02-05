@@ -22,12 +22,10 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     // UI Elements
-
     Button startDiscoveryScanBtn, connectBtn, enableBTBtn;
     ListView btDevicesListView;
 
     // ListView variables
-    List<String> displayDevices = new ArrayList<>();
     ArrayAdapter<String> btDevicesListViewAdapter;
 
     // Bluetooth devices list
@@ -57,11 +55,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
         btDevicesListViewAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, allSensors);
         btDevicesListView.setAdapter(btDevicesListViewAdapter);
         myInterface.getPairedDevices();
+
         // Start discovery button onClick
         startDiscoveryScanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 connectSensors();
             }
         } );
+
     }
 
     public void enableBluetooth () {

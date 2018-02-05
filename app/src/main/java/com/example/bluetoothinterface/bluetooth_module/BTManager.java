@@ -287,4 +287,5 @@ public class BTManager implements IBluetooth, Cloneable {
         }
         return null;
     }
+
 }
