@@ -6,7 +6,8 @@ import android.bluetooth.BluetoothDevice;
  * Created by Prashant on 22/01/2018.
  */
 
-public interface DiscoveryCallback {
-    void onDevice();
+public interface IDiscoveryCallback {
+    void onDevice(BluetoothDevice device);
     void onFinish();
+    void onError(String message);
 }

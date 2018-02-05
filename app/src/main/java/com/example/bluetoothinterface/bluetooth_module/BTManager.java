@@ -1,6 +1,5 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -9,18 +8,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
-import android.os.ParcelUuid;
-import android.provider.ContactsContract;
-import android.util.Log;
 
-import com.example.bluetoothinterface.DataHolder;
-import com.example.bluetoothinterface.interfaces.DiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
+import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
+import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,23 +22,22 @@ import java.util.UUID;
  */
 
 public class BTManager implements IBluetooth, Cloneable {
-    private static final String TAG = "BTManager";
+
+    // Bluetooth declarations
+    private BroadcastReceiver discoverDevicesReceiver;
+    private ArrayList<BluetoothDevice> miPods = new ArrayList<>();
+    private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private DataHolder dataStore = DataHolder.getInstance();
 
-    //Declarations
-//    private BluetoothSocket mySocket;
-//    private BluetoothDevice myDevice;
-    private DiscoveryCallback discoveryCallback;
+    // Callback Interface Declarations
+    private IDiscoveryCallback discoveryCB;
+    private ICommunicationCallback communicationCB;
 
-    //Definitions
+    // Definitions
     private BluetoothAdapter myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private ArrayList<BluetoothDevice> allBluetoothDevices = new ArrayList<>();
 
-    /*
-    * Default constructor for passing calling Activity class
-    * */
-    //Creating BTManger as Singleton
+    /* Creating BTManger as Singleton */
     private BTManager () {}
 
     public static BTManager getInstance () {
@@ -63,9 +54,8 @@ public class BTManager implements IBluetooth, Cloneable {
         return super.clone();
     }
 
-    /* Functions */
     /* Checks if bluetooth is already on */
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return myBluetoothAdapter.isEnabled();
     }
 
@@ -77,16 +67,7 @@ public class BTManager implements IBluetooth, Cloneable {
                 someActivity.startActivityForResult(enableBtIntent, 1);
             } catch (Exception e) {
                 // TODO: Handle the exception ??
-                Log.d(TAG, e.toString());
-            }
-        }
-    }
-
-    /* Disable bluetooth on user request */
-    public void disable(){
-        if(myBluetoothAdapter != null) {
-            if (isEnabled()) {
-                myBluetoothAdapter.disable();
+                System.out.println(e.toString());
             }
         }
     }
@@ -95,56 +76,61 @@ public class BTManager implements IBluetooth, Cloneable {
     public List<BluetoothDevice> getPairedDevices(){
         List<BluetoothDevice> bondedDevices = new ArrayList<>();
         bondedDevices.addAll(myBluetoothAdapter.getBondedDevices());
-        allBluetoothDevices.addAll(myBluetoothAdapter.getBondedDevices());
         return bondedDevices;
     }
 
-    /*
-    * This receiver is used for discovering bluetooth devices,
-    * It provides the ability to set a callback for different actions by invoking setDiscoveryCallback()
-    * Cases used,
-    * Found a device - onDevice(device) callback to get the found bluetooth device
-    * Discovery end  - unregister this broadcast receiver
-    * */
-    private BroadcastReceiver discoverDevicesReceiver;
-
     public void discoverDevices(final Activity someActivity) {
+
         discoverDevicesReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
+                String action = intent.getAction();
 
-            if (action != null) {
+                if (action != null) {
 
-                if (action.equals(BluetoothDevice.ACTION_FOUND)) {
-                    final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    allBluetoothDevices.add(device);
+                    switch (action) {
+                        case BluetoothDevice.ACTION_FOUND:
+                            final BluetoothDevice device = intent.getParcelableExtra( BluetoothDevice.EXTRA_DEVICE );
+                            System.out.println("BTManager :: Found a device " + device.getName());
 
-                    if (discoveryCallback != null && device.getName()!= null) {
-                        dataStore.setAvailableDevices(device.getName());
-                        Intent intentToChk = new Intent(someActivity, this.getClass());
-                        intentToChk.putExtra("Value1", "Hi");
-                        someActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                discoveryCallback.onDevice();
+                            if (discoveryCB != null) {
+                                someActivity.runOnUiThread( new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        discoveryCB.onDevice( device );
+                                    }
+                                } );
                             }
-                        });
+                            break;
+                        case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                            context.unregisterReceiver( discoverDevicesReceiver );
+                            System.out.println("BTManager :: Discovery finished ");
+
+                            if (discoveryCB != null) {
+                                someActivity.runOnUiThread( new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        discoveryCB.onFinish();
+                                    }
+                                } );
+                            }
+                            break;
+                        case BluetoothAdapter.ACTION_STATE_CHANGED:
+                            final int state = intent.getIntExtra( BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR );
+
+                            if (state == BluetoothAdapter.STATE_OFF) {
+                                if (discoveryCB != null) {
+                                    someActivity.runOnUiThread( new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            discoveryCB.onError( "Bluetooth switched off" );
+                                        }
+                                    } );
+                                }
+                            }
+                            break;
                     }
                 }
-                else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-                    context.unregisterReceiver(discoverDevicesReceiver);
-
-                    if (discoveryCallback != null) {
-                        someActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                            discoveryCallback.onFinish();
-                            }
-                        });
-                    }
-                }
-            }
             }
         };
 
@@ -152,88 +138,90 @@ public class BTManager implements IBluetooth, Cloneable {
             myBluetoothAdapter.cancelDiscovery();
         }
 
-        //check BT permissions in manifest
-        checkBTPermissions(someActivity);
-
         IntentFilter discoverDevicesIntent = new IntentFilter();
-        discoverDevicesIntent.addAction(BluetoothDevice.ACTION_FOUND);
-        discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        discoverDevicesIntent.addAction( BluetoothDevice.ACTION_FOUND );
+        discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_STATE_CHANGED );
+        discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_DISCOVERY_FINISHED );
 
-        someActivity.registerReceiver(discoverDevicesReceiver, discoverDevicesIntent);
+        someActivity.registerReceiver( discoverDevicesReceiver, discoverDevicesIntent );
         myBluetoothAdapter.startDiscovery();
     }
 
-//    public void connectByName(String bluetoothName) {
-//        for (BluetoothDevice device : allBluetoothDevices) {
-//            if (device.getName().equals(bluetoothName)) {
-//                Log.d(TAG, "Found the device in the list, " + device.getName());
-//                connectByDevice(device);
-//                return;
-//            }
-//        }
-//    }
+    public void connectToMiPods(ArrayList<BluetoothDevice> miPodsDevices, Activity someActivity) {
 
-    public void connectByDevice(BluetoothDevice device) {
-        System.out.println("In BTManager::connectByDevice: " + device.getName());
-        new ConnectThread(device).start();
+        myBluetoothAdapter.cancelDiscovery();
+        miPods.addAll(miPodsDevices);
+
+        for (final BluetoothDevice device : miPods) {
+
+            try {
+                if (device != null) {
+                    // TODO: Get different UUIDs for sensors
+                    BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID_SPP);
+                    bluetoothSockets.add( socket );
+                }
+            } catch (final Exception e) {
+                someActivity.runOnUiThread( new Runnable() {
+                    @Override
+                    public void run() {
+                        communicationCB.onError( e.getMessage() );
+                    }
+                } );
+            }
+        }
+
+        for (final BluetoothDevice device : miPods) {
+            try {
+                BluetoothSocket socket = findSocket(device.getName());
+                socket.connect();
+
+                // Callback for successful connection
+                if (communicationCB != null) {
+
+                    someActivity.runOnUiThread( new Runnable() {
+                        @Override
+                        public void run() {
+                            communicationCB.onConnect( device );
+                        }
+                    } );
+                }
+            } catch (Exception e) {
+                final String errorMessage = e.toString();
+                if (communicationCB != null) {
+                    someActivity.runOnUiThread( new Runnable() {
+                        @Override
+                        public void run() {
+                            communicationCB.onConnectError(errorMessage);
+                        }
+                    });
+                }
+            }
+        }
     }
 
-    public void setDiscoveryCallback(DiscoveryCallback discoveryCallback) {
-        this.discoveryCallback = discoveryCallback;
+    public void setDiscoveryCB(IDiscoveryCallback discoveryCB) {
+        this.discoveryCB = discoveryCB;
+    }
+
+    public void setCommunicationCB(ICommunicationCallback communicationCB) {
+        this.communicationCB = communicationCB;
     }
 
     public void removeDiscoveryCallback(){
-        this.discoveryCallback = null;
+        this.discoveryCB = null;
     }
 
-    private void checkBTPermissions(Activity someActivity) {
-        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
-            int permissionCheck = someActivity.checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION");
-            permissionCheck += someActivity.checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION");
-            if (permissionCheck != 0) {
-                someActivity.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001); //Any number
-            }
-        }else{
-            Log.d(TAG, "checkBTPermissions: No need to check permissions. SDK version < LOLLIPOP.");
-        }
+    public void removeCommunicationCallback() {
+        this.communicationCB = null;
     }
 
-    private class ConnectThread extends Thread {
-        private final BluetoothDevice myDevice;
-        private BluetoothSocket mySocket;
-        private final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
-        ConnectThread(BluetoothDevice device) {
-            System.out.println("Connect Thread class called: " + device.getAddress());
-            myDevice = device;
-            BluetoothSocket tmp = null;
-            try {
-                System.out.println("trying to open socket");
-                tmp = device.createRfcommSocketToServiceRecord(UUID_SPP);
-            } catch (IOException e) {
-                System.out.println("Catch exception " + e.toString());
-            }
-            mySocket = tmp;
-        }
-
-        public void run() {
-            myBluetoothAdapter.cancelDiscovery();
-            try {
-                mySocket.connect();
-                System.out.println("Connected to socket without errors");
-            } catch (IOException connectException) {
-                // Unable to connect; close the socket and return.
-                try {
-                    System.out.println("trying fallback...");
-                    mySocket = (BluetoothSocket) myDevice.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(myDevice,1);
-                    mySocket.connect();
-                    System.out.println("Connected");
-                }
-                catch (Exception e2) {
-                    System.out.println("Couldn't establish Bluetooth connection!");
-                }
+    private BluetoothSocket findSocket(String sensor) {
+        for(BluetoothSocket socket : bluetoothSockets) {
+            if (socket.getRemoteDevice().getName().toUpperCase().equals(sensor.toUpperCase()) ||
+                    socket.getRemoteDevice().getAddress().toUpperCase().equals(sensor.toUpperCase())) {
+                return socket;
             }
         }
+        return null;
     }
 }
