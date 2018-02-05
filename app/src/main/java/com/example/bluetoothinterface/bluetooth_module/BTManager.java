@@ -15,6 +15,7 @@ import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
+import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +27,15 @@ import java.util.UUID;
  */
 
 public class BTManager implements IBluetooth, Cloneable {
+    private enum BT_STATES {
+        ON, OFF, DISCOVERING
+    }
 
     // Bluetooth declarations
+    private BT_STATES STATE = BT_STATES.OFF;
     private BroadcastReceiver discoverDevicesReceiver;
     private ArrayList<BluetoothDevice> miPods = new ArrayList<>();
+    private ArrayList<ISensor> sensorList = new ArrayList<>();
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
@@ -69,6 +75,7 @@ public class BTManager implements IBluetooth, Cloneable {
             try {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 someActivity.startActivityForResult(enableBtIntent, 1);
+                STATE = BT_STATES.ON;
             } catch (Exception e) {
                 // TODO: Handle the exception ??
                 System.out.println(e.toString());
@@ -116,6 +123,7 @@ public class BTManager implements IBluetooth, Cloneable {
                             }
                             break;
                         case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                            STATE = BT_STATES.ON;
                             context.unregisterReceiver( discoverDevicesReceiver );
                             System.out.println("BTManager :: Discovery finished ");
 
@@ -157,19 +165,39 @@ public class BTManager implements IBluetooth, Cloneable {
         discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_DISCOVERY_FINISHED );
 
         someActivity.registerReceiver( discoverDevicesReceiver, discoverDevicesIntent );
-        myBluetoothAdapter.startDiscovery();
+        if (STATE != BT_STATES.OFF) {
+            STATE = BT_STATES.DISCOVERING;
+            myBluetoothAdapter.startDiscovery();
+        }
+
     }
 
     public void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity) {
-        List<BluetoothDevice> listSensorToConnect = new ArrayList<>();
-
         myBluetoothAdapter.cancelDiscovery();
+
+        setISensorList(miPodsDevicesNames);
+
+        createSockets(someActivity);
+
+        connectISensors(someActivity);
+
+        startRead();
+
+    }
+
+    private void setISensorList(ArrayList<String> miPodsDevicesNames) {
         for (BluetoothDevice device : miPods) {
-            if (miPodsDevicesNames.contains(device.getName())) {
-                listSensorToConnect.add(device);
+            if (miPodsDevicesNames.contains( device.getName() )) {
+                //listSensorToConnect.add(device);
+                ISensor sensor = new Sensor( device, "left" );
+                sensorList.add(sensor);
             }
         }
-        for (final BluetoothDevice device : listSensorToConnect) {
+    }
+
+    private void createSockets(Activity activity){
+        for (final ISensor sensor : sensorList) {
+            BluetoothDevice device = sensor.getDevice();
             try {
                 if (device != null) {
                     // TODO: Get different UUIDs for sensors
@@ -179,7 +207,7 @@ public class BTManager implements IBluetooth, Cloneable {
                     bluetoothSockets.add( socket );
                 }
             } catch (final Exception e) {
-                someActivity.runOnUiThread( new Runnable() {
+                activity.runOnUiThread( new Runnable() {
                     @Override
                     public void run() {
                         communicationCB.onError( e.getMessage() );
@@ -187,16 +215,20 @@ public class BTManager implements IBluetooth, Cloneable {
                 } );
             }
         }
+    }
 
-        for (final BluetoothDevice device : miPods) {
+    private void connectISensors(Activity activity) {
+        for (final ISensor sensor : sensorList) {
+            final BluetoothDevice device = sensor.getDevice();
             try {
                 BluetoothSocket socket = findSocket(device.getName());
                 socket.connect();
+                sensor.setState(SENSOR_STATE.CONNECTED);
 
                 // Callback for successful connection
                 if (communicationCB != null) {
 
-                    someActivity.runOnUiThread( new Runnable() {
+                    activity.runOnUiThread( new Runnable() {
                         @Override
                         public void run() {
                             communicationCB.onConnect( device );
@@ -206,13 +238,26 @@ public class BTManager implements IBluetooth, Cloneable {
             } catch (Exception e) {
                 final String errorMessage = e.toString();
                 if (communicationCB != null) {
-                    someActivity.runOnUiThread( new Runnable() {
+                    activity.runOnUiThread( new Runnable() {
                         @Override
                         public void run() {
                             communicationCB.onConnectError(errorMessage);
+                            sensor.setState(SENSOR_STATE.NOT_CONNECTED);
                         }
                     });
                 }
+            }
+        }
+    }
+
+    private void startRead() {
+        // List<ISensor> from sensorList
+        for (ISensor sensor: sensorList) {
+            //Create a thread and start reading
+            BluetoothSocket mySocket = findSocket(sensor.getName());
+            ReadStream thread = new ReadStream(sensor, mySocket);
+            if (sensor.getState() == SENSOR_STATE.CONNECTED) {
+                thread.start();
             }
         }
     }
