@@ -7,7 +7,7 @@ import android.bluetooth.BluetoothDevice;
  */
 
 public interface IDiscoveryCallback {
-    void onDevice(BluetoothDevice device);
+    void onDevice();
     void onFinish();
     void onError(String message);
 }

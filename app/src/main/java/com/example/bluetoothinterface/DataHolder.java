@@ -1,6 +1,7 @@
 package com.example.bluetoothinterface;
 
 import com.example.bluetoothinterface.bluetooth_module.BTManager;
+import com.example.bluetoothinterface.interfaces.IDataHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * Created by jalil on 1/30/2018.
  */
 
-public class DataHolder implements Cloneable {
+public class DataHolder implements IDataHolder, Cloneable {
     private List<String> availableDevices = new ArrayList<>();
 
     private DataHolder () {}
@@ -32,7 +33,7 @@ public class DataHolder implements Cloneable {
         return availableDevices;
     }
 
-    public void setAvailableDevices(String data) {
-        this.availableDevices.add(data);
+    public void setAvailableDevices(String newDevice) {
+        this.availableDevices.add(newDevice);
     }
 }

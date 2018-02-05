@@ -14,14 +14,15 @@ import android.widget.Toast;
 import com.example.bluetoothinterface.bluetooth_module.BTManager;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
+import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
     // UI Elements
+
     Button startDiscoveryScanBtn, connectBtn, enableBTBtn;
     ListView btDevicesListView;
 
@@ -30,11 +31,12 @@ public class MainActivity extends AppCompatActivity {
     ArrayAdapter<String> btDevicesListViewAdapter;
 
     // Bluetooth devices list
-    List<BluetoothDevice> allDevicesWithinRange = new ArrayList<>();
-    ArrayList<BluetoothDevice> clickedSensors = new ArrayList<>();
+    ArrayList<String> clickedSensors = new ArrayList<>();
 
     // Bluetooth objects
     IBluetooth myInterface = BTManager.getInstance();
+    private IDataHolder dataStore = DataHolder.getInstance();
+    List<String> allSensors = dataStore.getAvailableDevices();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,13 +57,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Load the list view with paired devices before discovering
-        allDevicesWithinRange = myInterface.getPairedDevices();
-        defaultListView(allDevicesWithinRange);
 
-        btDevicesListViewAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, displayDevices);
+
+        btDevicesListViewAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, allSensors);
         btDevicesListView.setAdapter(btDevicesListViewAdapter);
-
+        myInterface.getPairedDevices();
         // Start discovery button onClick
         startDiscoveryScanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,14 +74,9 @@ public class MainActivity extends AppCompatActivity {
         btDevicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String clickedItem = displayDevices.get(i);
-
-                for (BluetoothDevice device : allDevicesWithinRange) {
-                    if (device.getName().equals(clickedItem)) {
-                        clickedSensors.add(device);
-                        btDevicesListView.getChildAt(i).setBackgroundColor(Color.GREEN);
-                    }
-                }
+                String clickedItem = allSensors.get(i);
+                btDevicesListView.getChildAt(i).setBackgroundColor(Color.GREEN);
+                clickedSensors.add(clickedItem);
             }
         });
 
@@ -105,29 +100,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void defaultListView(List<BluetoothDevice> pairedDevices) {
-        if (!pairedDevices.isEmpty()) {
-            for (BluetoothDevice device : pairedDevices) {
-                displayDevices.add(device.getName());
-            }
-        }
-    }
-
     public void startDiscovery() {
-
         myInterface.setDiscoveryCB(new IDiscoveryCallback() {
             @Override
-            public void onDevice(BluetoothDevice device) {
-                try {
-                    if (device.getName() != null) {
-                        if (!displayDevices.contains(device.getName())) {
-                            allDevicesWithinRange.add(device);
-                            displayDevices.add(device.getName());
-                        }
-                    }
-                } catch (Exception e) {
-                    System.out.println("Exception for getting device name, " + e.toString());
-                }
+            public void onDevice() {
                 btDevicesListViewAdapter.notifyDataSetChanged();
             }
 
@@ -141,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
-
         myInterface.discoverDevices(MainActivity.this);
     }
 

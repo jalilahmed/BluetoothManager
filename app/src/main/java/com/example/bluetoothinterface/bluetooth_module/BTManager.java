@@ -8,13 +8,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.ParcelUuid;
 
+import com.example.bluetoothinterface.DataHolder;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
+import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -28,7 +32,7 @@ public class BTManager implements IBluetooth, Cloneable {
     private ArrayList<BluetoothDevice> miPods = new ArrayList<>();
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private DataHolder dataStore = DataHolder.getInstance();
+    private IDataHolder dataStore = DataHolder.getInstance();
 
     // Callback Interface Declarations
     private IDiscoveryCallback discoveryCB;
@@ -73,10 +77,17 @@ public class BTManager implements IBluetooth, Cloneable {
     }
 
     /* Get all paired devices */
-    public List<BluetoothDevice> getPairedDevices(){
-        List<BluetoothDevice> bondedDevices = new ArrayList<>();
-        bondedDevices.addAll(myBluetoothAdapter.getBondedDevices());
-        return bondedDevices;
+    public List<String> getPairedDevices(){
+        Set<BluetoothDevice> temp = myBluetoothAdapter.getBondedDevices();
+        if (temp.size()  > 0 ) {
+            for (BluetoothDevice device : temp) {
+                if (device.getName().contains("miPod3")) {
+                    dataStore.setAvailableDevices(device.getName());
+                    miPods.add(device);
+                }
+            }
+        }
+        return dataStore.getAvailableDevices();
     }
 
     public void discoverDevices(final Activity someActivity) {
@@ -91,15 +102,17 @@ public class BTManager implements IBluetooth, Cloneable {
                     switch (action) {
                         case BluetoothDevice.ACTION_FOUND:
                             final BluetoothDevice device = intent.getParcelableExtra( BluetoothDevice.EXTRA_DEVICE );
-                            System.out.println("BTManager :: Found a device " + device.getName());
+                            //System.out.println("BTManager :: Found a device " + device.getName());
 
-                            if (discoveryCB != null) {
+                            if (discoveryCB != null && device.getName() != null && device.getName().contains("miPod3")) {
                                 someActivity.runOnUiThread( new Runnable() {
                                     @Override
                                     public void run() {
-                                        discoveryCB.onDevice( device );
+                                        miPods.add(device);
+                                        dataStore.setAvailableDevices(device.getName());
+                                        discoveryCB.onDevice();
                                     }
-                                } );
+                                });
                             }
                             break;
                         case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
@@ -147,17 +160,22 @@ public class BTManager implements IBluetooth, Cloneable {
         myBluetoothAdapter.startDiscovery();
     }
 
-    public void connectToMiPods(ArrayList<BluetoothDevice> miPodsDevices, Activity someActivity) {
+    public void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity) {
+        List<BluetoothDevice> listSensorToConnect = new ArrayList<>();
 
         myBluetoothAdapter.cancelDiscovery();
-        miPods.addAll(miPodsDevices);
-
-        for (final BluetoothDevice device : miPods) {
-
+        for (BluetoothDevice device : miPods) {
+            if (miPodsDevicesNames.contains(device.getName())) {
+                listSensorToConnect.add(device);
+            }
+        }
+        for (final BluetoothDevice device : listSensorToConnect) {
             try {
                 if (device != null) {
                     // TODO: Get different UUIDs for sensors
-                    BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID_SPP);
+                    ParcelUuid[] uuids = device.getUuids();
+                    String uuid = uuids[0].toString();
+                    BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
                     bluetoothSockets.add( socket );
                 }
             } catch (final Exception e) {

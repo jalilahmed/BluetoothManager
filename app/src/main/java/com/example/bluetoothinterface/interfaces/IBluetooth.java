@@ -15,9 +15,9 @@ public interface IBluetooth {
     // BT Module methods
     boolean isEnabled();
     void enable(Activity someActivity);
-    List<BluetoothDevice> getPairedDevices();
+    List<String> getPairedDevices();
     void discoverDevices(Activity someActivity);
-    void connectToMiPods(ArrayList<BluetoothDevice> miPodsDevices, Activity someActivity);
+    void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity);
 
     // Discovery Callback methods
     void setDiscoveryCB(IDiscoveryCallback discoveryCB);
