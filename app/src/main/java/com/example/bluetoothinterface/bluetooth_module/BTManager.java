@@ -10,9 +10,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.os.ParcelUuid;
+import android.provider.ContactsContract;
 import android.util.Log;
 
+import com.example.bluetoothinterface.DataHolder;
 import com.example.bluetoothinterface.interfaces.DiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 
@@ -28,6 +32,7 @@ import java.util.UUID;
 public class BTManager implements IBluetooth, Cloneable {
     private static final String TAG = "BTManager";
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private DataHolder dataStore = DataHolder.getInstance();
 
     //Declarations
 //    private BluetoothSocket mySocket;
@@ -115,11 +120,14 @@ public class BTManager implements IBluetooth, Cloneable {
                     final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     allBluetoothDevices.add(device);
 
-                    if (discoveryCallback != null) {
+                    if (discoveryCallback != null && device.getName()!= null) {
+                        dataStore.setAvailableDevices(device.getName());
+                        Intent intentToChk = new Intent(someActivity, this.getClass());
+                        intentToChk.putExtra("Value1", "Hi");
                         someActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                discoveryCallback.onDevice(device);
+                                discoveryCallback.onDevice();
                             }
                         });
                     }

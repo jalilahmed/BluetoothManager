@@ -19,6 +19,8 @@ public interface IBluetooth {
     void disable();
     List<BluetoothDevice> getPairedDevices();
     void discoverDevices(Activity someActivity);
-//    void connectByName(String bluetoothName);
-    void connectByDevice(BluetoothDevice device);
+//void connectByName(String bluetoothName);
+
+
+    //Quality Check 5 seconds of data
 }
