@@ -22,7 +22,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     // UI Elements
-    Button startDiscoveryScanBtn, connectBtn, enableBTBtn;
+    Button startDiscoveryScanBtn, connectBtn, enableBTBtn, stopButton;
     ListView btDevicesListView;
 
     // ListView variables
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         startDiscoveryScanBtn = findViewById(R.id.startDiscoveryScanBtn);
         connectBtn = findViewById(R.id.connectBtn);
         btDevicesListView  = findViewById(R.id.btDevicesListView);
+        stopButton = findViewById(R.id.stopButton);
 
         // Enable Bluetooth Button if disabled
         enableBTBtn.setOnClickListener( new View.OnClickListener() {
@@ -83,6 +84,13 @@ public class MainActivity extends AppCompatActivity {
                 connectSensors();
             }
         } );
+
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public  void  onClick(View view){
+                myInterface.test();
+            }
+        });
 
     }
 

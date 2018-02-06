@@ -36,6 +36,7 @@ public class BTManager implements IBluetooth, Cloneable {
     private BroadcastReceiver discoverDevicesReceiver;
     private ArrayList<BluetoothDevice> miPods = new ArrayList<>();
     private ArrayList<ISensor> sensorList = new ArrayList<>();
+    private ArrayList<String> readStreamNames = new ArrayList<>();
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
@@ -252,13 +253,25 @@ public class BTManager implements IBluetooth, Cloneable {
 
     private void startRead() {
         // List<ISensor> from sensorList
-        for (ISensor sensor: sensorList) {
-            //Create a thread and start reading
-            BluetoothSocket mySocket = findSocket(sensor.getName());
-            ReadStream thread = new ReadStream(sensor, mySocket);
-            if (sensor.getState() == SENSOR_STATE.CONNECTED) {
-                thread.start();
-            }
+//        for (ISensor sensor: sensorList) {
+//            //Create a thread and start reading
+//            BluetoothSocket mySocket = findSocket(sensor.getName());
+//            ReadStream thread = new ReadStream(sensor, mySocket);
+//            if (sensor.getState() == SENSOR_STATE.CONNECTED) {
+//                thread.start();
+//            }
+//        }
+        ISensor sensor1 = sensorList.get(0);
+        ISensor sensor2 = sensorList.get(1);
+        BluetoothSocket mySocket = findSocket(sensor1.getName());
+        ReadStream thread1 = new ReadStream(sensor1, mySocket);
+        if (sensor1.getState() == SENSOR_STATE.CONNECTED) {
+            thread1.start();
+        }
+        BluetoothSocket mySocket2 = findSocket(sensor2.getName());
+        ReadStream thread2 = new ReadStream(sensor2, mySocket2);
+        if (sensor2.getState() == SENSOR_STATE.CONNECTED) {
+            thread2.start();
         }
     }
 
@@ -286,6 +299,10 @@ public class BTManager implements IBluetooth, Cloneable {
             }
         }
         return null;
+    }
+
+    public void test() {
+        sensorList.get(0).setState(SENSOR_STATE.CONNECTED);
     }
 
 }

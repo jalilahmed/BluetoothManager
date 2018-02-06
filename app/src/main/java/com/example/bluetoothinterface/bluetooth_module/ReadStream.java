@@ -92,14 +92,15 @@ public class ReadStream implements Runnable{
                         // Check for Lost Frames (Quality Check)
                         int ISensorLostFrames = QMSensor.lostFrames(localData);
 
-                        if (ISensorLostFrames >= 1) {
-                            sensor.setState(SENSOR_STATE.CONNECTED);
-                            System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
-                            break;
-                        }
-                    }
+//                        if (ISensorLostFrames >= 1) {
+//                            sensor.setState(SENSOR_STATE.CONNECTED);
+//                            System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
+//                            break;
+//                        }
+                }
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                     sensor.setLastReadTime(Calendar.getInstance().getTime());
+                    System.out.println("Thread of " + threadName + "sensor states" + sensor.getState());
                 }
             } catch (IOException e) {
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");

@@ -16,8 +16,9 @@ public class QMSensor implements IQMSensor {
         int currentCount;
         int nextCount;
         int differenceInCounts;
+//        System.out.println(last5SecondsData.size());
 
-        for (int i = 0; i < last5SecondsData.size(); i+=2) {
+        for (int i = 0; i < (last5SecondsData.size() - 1); ++i) {
             currentCount = last5SecondsData.get(i).getCount();
             nextCount = last5SecondsData.get(i+1).getCount();
             differenceInCounts = nextCount - currentCount;
