@@ -1,6 +1,7 @@
 package com.example.bluetoothinterface.interfaces;
 
 import android.bluetooth.BluetoothDevice;
+import android.provider.ContactsContract;
 
 import com.example.bluetoothinterface.bluetooth_module.DataFrame;
 import com.example.bluetoothinterface.bluetooth_module.SENSOR_STATE;
@@ -22,5 +23,7 @@ public interface ISensor {
     BluetoothDevice getDevice();
 
     void setData(List<DataFrame> data5Seconds);
+    List<DataFrame> getData();
     void setLastReadTime(Date dateTimeNow);
+    Date getLastReadTime();
 }

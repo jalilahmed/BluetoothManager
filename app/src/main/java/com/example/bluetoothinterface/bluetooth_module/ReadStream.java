@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.example.bluetoothinterface.interfaces.IQMSensor;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.io.IOException;
@@ -26,12 +27,14 @@ public class ReadStream implements Runnable{
         public List<Integer> data = new ArrayList<>();
         private byte [] buffer;
         private InputStream mInputStream;
+        private IQMSensor QMSensor;
 
         ReadStream(ISensor mySensor, BluetoothSocket mySocket){
             InputStream stream = null;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
+            QMSensor = new QMSensor();
             try{
                 stream = socket.getInputStream();
             }catch(Exception e) {
@@ -85,6 +88,15 @@ public class ReadStream implements Runnable{
                     if((nowTime.getTime() - startTime.getTime())/1000 >= 5){
                         sensor.setData(localData);
                         startTime = nowTime;
+
+                        // Check for Lost Frames (Quality Check)
+                        int ISensorLostFrames = QMSensor.lostFrames(localData);
+
+                        if (ISensorLostFrames >= 1) {
+                            sensor.setState(SENSOR_STATE.CONNECTED);
+                            System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
+                            break;
+                        }
                     }
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                     sensor.setLastReadTime(Calendar.getInstance().getTime());
@@ -92,6 +104,7 @@ public class ReadStream implements Runnable{
             } catch (IOException e) {
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
             }
+            System.out.println("Stopping Thread: " + threadName);
         }
 
         public void start () {

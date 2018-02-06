@@ -45,4 +45,12 @@ public class DataFrame {
         frame.add(gz);
     }
 
+    public int getCount() {
+        return count;
+    }
+
+    public  List<Integer> getFrame() {
+        return frame;
+    }
+
 }

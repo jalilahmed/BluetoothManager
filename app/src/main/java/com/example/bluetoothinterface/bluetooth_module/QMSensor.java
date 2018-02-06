@@ -1,0 +1,37 @@
+package com.example.bluetoothinterface.bluetooth_module;
+
+import com.example.bluetoothinterface.interfaces.IQMSensor;
+
+import java.util.Date;
+import java.util.List;
+
+/**
+ * Created by jalil on 2/6/2018.
+ */
+
+public class QMSensor implements IQMSensor {
+    private int numberOfFramesLost;
+
+    public int lostFrames(List<DataFrame> last5SecondsData) {
+        int currentCount;
+        int nextCount;
+        int differenceInCounts;
+
+        for (int i = 0; i < last5SecondsData.size(); i+=2) {
+            currentCount = last5SecondsData.get(i).getCount();
+            nextCount = last5SecondsData.get(i+1).getCount();
+            differenceInCounts = nextCount - currentCount;
+
+            if (differenceInCounts != 0) {
+                numberOfFramesLost = differenceInCounts;
+            }
+        }
+
+        return numberOfFramesLost;
+    }
+
+
+    public boolean shouldDisconnect(Date lastReadTime) {
+        return false;
+    }
+}
