@@ -1,6 +1,6 @@
 package com.example.bluetoothinterface;
 
-import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import com.example.bluetoothinterface.bluetooth_module.BTManager;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
-import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 
@@ -22,7 +21,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     // UI Elements
-    Button startDiscoveryScanBtn, connectBtn, enableBTBtn;
+    Button startDiscoveryScanBtn, startBtn, enableBTBtn;
     ListView btDevicesListView;
 
     // ListView variables
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         // Initializing all views
         enableBTBtn = findViewById(R.id.enableBTBtn);
         startDiscoveryScanBtn = findViewById(R.id.startDiscoveryScanBtn);
-        connectBtn = findViewById(R.id.connectBtn);
+        startBtn = findViewById(R.id.selectAndStartBtn);
         btDevicesListView  = findViewById(R.id.btDevicesListView);
 
         // Enable Bluetooth Button if disabled
@@ -77,10 +76,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        connectBtn.setOnClickListener( new View.OnClickListener() {
+        startBtn.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                connectSensors();
+                Start();
             }
         } );
 
@@ -118,35 +117,43 @@ public class MainActivity extends AppCompatActivity {
         myInterface.discoverDevices(MainActivity.this);
     }
 
-    public void connectSensors() {
+    public void Start() {
         myInterface.removeDiscoveryCallback(); //Always remove the discovery callback
 
-        myInterface.setCommunicationCB( new ICommunicationCallback() {
-            @Override
-            public void onConnect(BluetoothDevice device) {
-                Toast.makeText(getApplicationContext(), "Connected to " + device.getName(), Toast.LENGTH_SHORT).show();
-                System.out.println( "Main Activity :: onConnect successful with " + device.getName());
-            }
+        if (clickedSensors.size() != 0) {
+            Intent startISensorIntent = new Intent(getApplicationContext(), ISensorActivity.class);
+            startISensorIntent.putExtra("Sensors_selected", clickedSensors);
+            startActivity(startISensorIntent);
+        } else {
+            Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
+        }
 
-            @Override
-            public void onError(String message) {
-                System.out.println( "Main Activity :: onError " + message);
-                myInterface.removeCommunicationCallback();
-            }
-
-            @Override
-            public void onConnectError(String message) {
-                System.out.println( "Main Activity :: onConnectError " + message );
-                myInterface.removeCommunicationCallback();
-            }
-
-            @Override
-            public void onDisconnect(String message) {
-                System.out.println( "Main Activity :: onDisconnect " + message );
-                myInterface.removeCommunicationCallback();
-            }
-        });
-
-        myInterface.connectToMiPods( clickedSensors, MainActivity.this );
+//        myInterface.setCommunicationCB( new ICommunicationCallback() {
+//            @Override
+//            public void onConnect(BluetoothDevice device) {
+//                Toast.makeText(getApplicationContext(), "Connected to " + device.getName(), Toast.LENGTH_SHORT).show();
+//                System.out.println( "Main Activity :: onConnect successful with " + device.getName());
+//            }
+//
+//            @Override
+//            public void onError(String message) {
+//                System.out.println( "Main Activity :: onError " + message);
+//                myInterface.removeCommunicationCallback();
+//            }
+//
+//            @Override
+//            public void onConnectError(String message) {
+//                System.out.println( "Main Activity :: onConnectError " + message );
+//                myInterface.removeCommunicationCallback();
+//            }
+//
+//            @Override
+//            public void onDisconnect(String message) {
+//                System.out.println( "Main Activity :: onDisconnect " + message );
+//                myInterface.removeCommunicationCallback();
+//            }
+//        });
+//
+//        myInterface.connectToMiPods( clickedSensors, MainActivity.this );
     }
 }

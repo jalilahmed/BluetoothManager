@@ -181,7 +181,7 @@ public class BTManager implements IBluetooth, Cloneable {
 
         connectISensors(someActivity);
 
-        startRead();
+        startRead(someActivity);
 
     }
 
@@ -250,12 +250,12 @@ public class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    private void startRead() {
+    private void startRead(Activity activity) {
         // List<ISensor> from sensorList
         for (ISensor sensor: sensorList) {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
-            ReadStream thread = new ReadStream(sensor, mySocket);
+            ReadStream thread = new ReadStream(sensor, mySocket, activity, communicationCB);
             if (sensor.getState() == SENSOR_STATE.CONNECTED) {
                 thread.start();
             }

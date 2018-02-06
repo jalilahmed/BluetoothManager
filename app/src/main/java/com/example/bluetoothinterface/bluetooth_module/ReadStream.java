@@ -1,9 +1,10 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
-import android.util.Log;
 
+import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.io.IOException;
@@ -26,12 +27,17 @@ public class ReadStream implements Runnable{
         public List<Integer> data = new ArrayList<>();
         private byte [] buffer;
         private InputStream mInputStream;
+        private Activity UIActivity;
 
-        ReadStream(ISensor mySensor, BluetoothSocket mySocket){
+        private ICommunicationCallback communicationCB;
+
+        ReadStream(ISensor mySensor, BluetoothSocket mySocket, Activity activity, ICommunicationCallback BTManagerCommunicationCB){
             InputStream stream = null;
+            UIActivity = activity;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
+            communicationCB  = BTManagerCommunicationCB;
             try{
                 stream = socket.getInputStream();
             }catch(Exception e) {
@@ -89,7 +95,25 @@ public class ReadStream implements Runnable{
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                     sensor.setLastReadTime(Calendar.getInstance().getTime());
                 }
+                // Thread has stopped reading, callback for UI Thread
+                if (communicationCB != null) {
+                    UIActivity.runOnUiThread( new Runnable() {
+                        @Override
+                        public void run() {
+                            communicationCB.onStopReading(sensor.getDevice());
+                        }
+                    });
+                }
             } catch (IOException e) {
+                // Found exception for connection
+                if (communicationCB != null) {
+                    UIActivity.runOnUiThread( new Runnable() {
+                        @Override
+                        public void run() {
+                            communicationCB.onConnectionLost(sensor.getDevice());
+                        }
+                    });
+                }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
             }
         }

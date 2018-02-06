@@ -11,4 +11,6 @@ public interface ICommunicationCallback {
     void onError(String message);
     void onConnectError(String message);
     void onDisconnect(String message);
+    void onConnectionLost(BluetoothDevice device);
+    void onStopReading(BluetoothDevice device);
 }
