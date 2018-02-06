@@ -1,5 +1,6 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -7,8 +8,8 @@ import java.util.List;
  */
 
 public class DataFrame {
-    private List<Integer> frame;
-    private Integer count;
+    private List<Integer> frame = new ArrayList<>();
+    private int count;
 
     public DataFrame(byte[] rawData) {
         count = getCount(rawData);
@@ -17,7 +18,7 @@ public class DataFrame {
     }
 
 
-    private Integer getCount(byte [] rawData){
+    private int getCount(byte[] rawData) {
         // unsigned bytes
         count = (rawData[12] & 0xff) |
                 ((rawData[11] & 0xff) << 8) |
@@ -26,18 +27,19 @@ public class DataFrame {
         return count;
     }
 
-    private void ConvertA(byte [] rawData){
-        Integer ax = ((rawData[14] & 0xff) | (rawData[13] << 8));
-        Integer ay = ((rawData[16] & 0xff) | (rawData[15] << 8));
-        Integer az = ((rawData[18] & 0xff) | (rawData[17] << 8));
+    private void ConvertA(byte[] rawData) {
+        int ax = ((rawData[14] & 0xff) | (rawData[13] << 8));
+        int ay = ((rawData[16] & 0xff) | (rawData[15] << 8));
+        int az = ((rawData[18] & 0xff) | (rawData[17] << 8));
         frame.add(ax);
         frame.add(ay);
         frame.add(az);
     }
-    private void ConvertG(byte [] rawData){
-        Integer gx = ((rawData[22] & 0xff) | (rawData[21] << 8));
-        Integer gy = ((rawData[24] & 0xff) | (rawData[23] << 8));
-        Integer gz = ((rawData[26] & 0xff) | (rawData[25] << 8));
+
+    private void ConvertG(byte[] rawData) {
+        int gx = ((rawData[22] & 0xff) | (rawData[21] << 8));
+        int gy = ((rawData[24] & 0xff) | (rawData[23] << 8));
+        int gz = ((rawData[26] & 0xff) | (rawData[25] << 8));
         frame.add(gx);
         frame.add(gy);
         frame.add(gz);

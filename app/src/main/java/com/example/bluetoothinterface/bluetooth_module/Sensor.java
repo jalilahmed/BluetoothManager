@@ -6,6 +6,7 @@ import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -23,7 +24,7 @@ public class Sensor implements ISensor {
 
     //
     private BluetoothDevice device;
-    private ArrayList<Integer> randomData;
+    private List<DataFrame> last5SecondsData;
     private Date timeOfLastRead;
 
     Sensor(BluetoothDevice miPodSensor, String pos) {
@@ -58,8 +59,8 @@ public class Sensor implements ISensor {
         return device;
     }
 
-    public void setData(ArrayList<Integer> data5Seconds) {
-        randomData = data5Seconds;
+    public void setData(List<DataFrame> data5Seconds) {
+        last5SecondsData = data5Seconds;
     }
 
     public void setLastReadTime(Date dateTimeNow) {

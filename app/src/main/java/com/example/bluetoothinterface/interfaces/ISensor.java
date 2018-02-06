@@ -2,10 +2,12 @@ package com.example.bluetoothinterface.interfaces;
 
 import android.bluetooth.BluetoothDevice;
 
+import com.example.bluetoothinterface.bluetooth_module.DataFrame;
 import com.example.bluetoothinterface.bluetooth_module.SENSOR_STATE;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Prashant on 05/02/2018.
@@ -19,6 +21,6 @@ public interface ISensor {
     String getPosition();
     BluetoothDevice getDevice();
 
-    void setData(ArrayList<Integer> data5Seconds);
+    void setData(List<DataFrame> data5Seconds);
     void setLastReadTime(Date dateTimeNow);
 }
