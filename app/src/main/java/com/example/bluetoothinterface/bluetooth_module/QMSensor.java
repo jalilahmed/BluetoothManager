@@ -33,6 +33,10 @@ public class QMSensor implements IQMSensor {
 
 
     public boolean shouldDisconnect(Date lastReadTime) {
-        return false;
+
+        // TODO: Need better logic ?
+        // Not fired when sensor was out of range
+        Date nowTime = new Date();
+        return (nowTime.getTime() - lastReadTime.getTime())/1000 >= 10;
     }
 }

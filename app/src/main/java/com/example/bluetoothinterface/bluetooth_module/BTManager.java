@@ -303,6 +303,7 @@ public class BTManager implements IBluetooth, Cloneable {
 
     public void test() {
         sensorList.get(0).setState(SENSOR_STATE.CONNECTED);
+        sensorList.get(1).setState(SENSOR_STATE.CONNECTED);
     }
 
 }
