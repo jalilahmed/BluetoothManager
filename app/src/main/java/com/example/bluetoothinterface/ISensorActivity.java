@@ -127,9 +127,9 @@ public class ISensorActivity extends AppCompatActivity {
             @Override
             public void onStopReading(BluetoothDevice device) {
                 if (device.getName().equals(selectedSensors.get(0))) {
-                    LeftStopReading.setBackgroundColor(Color.RED);
+                    LeftReadingTV.setBackgroundColor(Color.RED);
                 } else if (device.getName().equals(selectedSensors.get(1))) {
-                    RightStopReading.setBackgroundColor(Color.RED);
+                    RightReadingTV.setBackgroundColor(Color.RED);
                 }
             }
         });

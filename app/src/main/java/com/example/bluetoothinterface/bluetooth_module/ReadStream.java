@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
+import com.example.bluetoothinterface.interfaces.IQMSensor;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.io.IOException;
@@ -27,6 +28,8 @@ public class ReadStream implements Runnable{
         public List<Integer> data = new ArrayList<>();
         private byte [] buffer;
         private InputStream mInputStream;
+        private IQMSensor QMSensor;
+        private PackageToolbox packageToolbox = PackageToolbox.getInstance();
         private Activity UIActivity;
 
         private ICommunicationCallback communicationCB;
@@ -37,6 +40,7 @@ public class ReadStream implements Runnable{
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
+            QMSensor = new QMSensor();
             communicationCB  = BTManagerCommunicationCB;
             try{
                 stream = socket.getInputStream();
@@ -48,7 +52,7 @@ public class ReadStream implements Runnable{
 
         @Override
         public void run() {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[16384];
             int lastReadIndex = 0;
             int notProcessedLength = 0;
             int loopCount = 0;
@@ -61,13 +65,15 @@ public class ReadStream implements Runnable{
 
                     //TODO: Stefan Wrote this in try catch block
                     SystemClock.sleep(250);
-                    byte[] tmpBuffer = new byte[2048];
-                    int bytes = mInputStream.read(tmpBuffer, 0, 2048);
+                    byte[] tmpBuffer = new byte[8192];
+                    int bytes = mInputStream.read(tmpBuffer, 0, 8192);
 
                     System.arraycopy(tmpBuffer, 0, buffer, notProcessedLength, bytes);
 
                     if (bytes > 0) {
-                        lastReadIndex = findDataPackages(buffer, bytes + notProcessedLength, localData);
+                        sensor.setLastReadTime(Calendar.getInstance().getTime());
+
+                        lastReadIndex = packageToolbox.findDataPackages(buffer, bytes + notProcessedLength, localData);
 
                         if (lastReadIndex == bytes + notProcessedLength -1) {
                             notProcessedLength = 0;
@@ -81,19 +87,34 @@ public class ReadStream implements Runnable{
                                 System.out.println(e.toString());
                             }
 
-                            for (int i = 0; i < notProcessed.length; i++) {
-                                buffer[i] = notProcessed[i];
-                            }
+//                          TODO Check if the replaced method of System.arraycopy is working good
+//                            for (int i = 0; i < notProcessed.length; i++) {
+//                                buffer[i] = notProcessed[i];
+//                            }
+                            System.arraycopy(notProcessed, 0, buffer, 0, notProcessed.length);
                         }
                     }
 
                     Date nowTime = new Date();
                     if((nowTime.getTime() - startTime.getTime())/1000 >= 5){
-                        sensor.setData(localData);
                         startTime = nowTime;
+                        // Check for Lost Frames (Quality Check)
+                        int ISensorLostFrames = QMSensor.lostFrames(localData);
+
+                        if (ISensorLostFrames >= 1) {
+                            sensor.setState(SENSOR_STATE.CONNECTED);
+                            System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
+                            break;
+                        }
+
+                        sensor.setData(localData);
+                    }
+
+                    if (QMSensor.shouldDisconnect(sensor.getLastReadTime())) {
+                        System.out.println("Thread " + threadName + " is breaking coz of shouldDisconnect()");
+                        break;
                     }
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
-                    sensor.setLastReadTime(Calendar.getInstance().getTime());
                 }
                 // Thread has stopped reading, callback for UI Thread
                 if (communicationCB != null) {
@@ -116,6 +137,7 @@ public class ReadStream implements Runnable{
                 }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
             }
+            System.out.println("Stopping Thread: " + threadName);
         }
 
         public void start () {
@@ -126,52 +148,4 @@ public class ReadStream implements Runnable{
             }
         }
 
-        //TODO: Shift to a new file
-        private int findDataPackages(byte[] buffer, int endIndex, ArrayList<DataFrame>localData) {
-        int pos;
-        if (endIndex < 0 || endIndex > buffer.length - 1) {
-            System.out.println("findNextDataStartPosition: Index out of Range.");
-        }
-
-        int lastFrameStart = 0;
-
-        for (int currentIndex = 0; currentIndex < endIndex - 27; currentIndex++) {
-            pos=0;
-
-            if (buffer[currentIndex] != 2) {
-                continue;
-            }
-
-            if (buffer[currentIndex + 1] != 82) {
-                continue;
-            }
-
-            if (buffer[currentIndex + 2] != 15) {
-                continue;
-            }
-
-            int d = (97 + buffer[currentIndex + 3] + buffer[currentIndex + 4]) % 256 ;
-            if (buffer[currentIndex + 5] != d) {
-                continue;
-            }
-
-            if (buffer[currentIndex+27] != 3) {
-                continue;
-            }
-
-            byte[] DATA = Arrays.copyOfRange(buffer, currentIndex, currentIndex + 28);
-
-            try {
-                DataFrame frame = new DataFrame(DATA);
-                localData.add(frame);
-            } catch(Exception e) {
-                System.out.println("findDataPackages::Error sendData: " + e.getMessage());
-            }
-            lastFrameStart = currentIndex;
-
-            currentIndex += 27;
-        }
-
-        return lastFrameStart + 27;
-    }
 }

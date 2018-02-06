@@ -63,8 +63,16 @@ public class Sensor implements ISensor {
         last5SecondsData = data5Seconds;
     }
 
+    public List<DataFrame> getData() {
+        return last5SecondsData;
+    }
+
     public void setLastReadTime(Date dateTimeNow) {
         timeOfLastRead = dateTimeNow;
+    }
+
+    public Date getLastReadTime() {
+        return timeOfLastRead;
     }
 
 }

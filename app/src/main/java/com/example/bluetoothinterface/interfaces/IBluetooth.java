@@ -17,6 +17,7 @@ public interface IBluetooth {
     List<String> getPairedDevices();
     void discoverDevices(Activity someActivity);
     void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity);
+    void test();
 
     // Discovery Callback methods
     void setDiscoveryCB(IDiscoveryCallback discoveryCB);
