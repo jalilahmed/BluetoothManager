@@ -66,6 +66,9 @@ public class BTManager implements IBluetooth, Cloneable {
 
     /* Checks if bluetooth is already on */
     public boolean isEnabled() {
+        if (myBluetoothAdapter.isEnabled()){
+            STATE = BT_STATES.ON;
+        }
         return myBluetoothAdapter.isEnabled();
     }
 
@@ -98,7 +101,6 @@ public class BTManager implements IBluetooth, Cloneable {
     }
 
     public void discoverDevices(final Activity someActivity) {
-
         discoverDevicesReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -109,7 +111,7 @@ public class BTManager implements IBluetooth, Cloneable {
                     switch (action) {
                         case BluetoothDevice.ACTION_FOUND:
                             final BluetoothDevice device = intent.getParcelableExtra( BluetoothDevice.EXTRA_DEVICE );
-                            //System.out.println("BTManager :: Found a device " + device.getName());
+                            System.out.println("BTManager :: Found a device " + device.getName());
 
                             if (discoveryCB != null && device.getName() != null && device.getName().contains("miPod3")) {
                                 someActivity.runOnUiThread( new Runnable() {
@@ -154,6 +156,7 @@ public class BTManager implements IBluetooth, Cloneable {
                 }
             }
         };
+        System.out.println("discoverDevices Started!!");
 
         if (myBluetoothAdapter.isDiscovering()) {
             myBluetoothAdapter.cancelDiscovery();
@@ -165,11 +168,16 @@ public class BTManager implements IBluetooth, Cloneable {
         discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_DISCOVERY_FINISHED );
 
         someActivity.registerReceiver( discoverDevicesReceiver, discoverDevicesIntent );
-        if (STATE != BT_STATES.OFF) {
+        if (STATE == BT_STATES.ON) {
             STATE = BT_STATES.DISCOVERING;
             myBluetoothAdapter.startDiscovery();
         }
+    }
 
+    public void stopDiscoverDevices() {
+        if (myBluetoothAdapter.isDiscovering()) {
+            myBluetoothAdapter.cancelDiscovery();
+        }
     }
 
     public void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity) {
@@ -268,6 +276,7 @@ public class BTManager implements IBluetooth, Cloneable {
 
     public void setCommunicationCB(ICommunicationCallback communicationCB) {
         this.communicationCB = communicationCB;
+        System.out.println("BTManager CommunicationCallback" + communicationCB);
     }
 
     public void removeDiscoveryCallback(){

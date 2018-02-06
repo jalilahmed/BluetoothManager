@@ -101,7 +101,7 @@ public class ReadStream implements Runnable{
                         // Check for Lost Frames (Quality Check)
                         int ISensorLostFrames = QMSensor.lostFrames(localData);
 
-                        if (ISensorLostFrames >= 1) {
+                        if (ISensorLostFrames >= 50) {
                             sensor.setState(SENSOR_STATE.CONNECTED);
                             System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
                             break;
@@ -127,11 +127,13 @@ public class ReadStream implements Runnable{
                 }
             } catch (IOException e) {
                 // Found exception for connection
+                System.out.println("ReadStream CommunicationCallback" + communicationCB);
                 if (communicationCB != null) {
                     UIActivity.runOnUiThread( new Runnable() {
                         @Override
                         public void run() {
                             communicationCB.onConnectionLost(sensor.getDevice());
+                            communicationCB.onStopReading(sensor.getDevice());
                         }
                     });
                 }

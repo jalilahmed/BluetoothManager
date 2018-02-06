@@ -16,6 +16,7 @@ public interface IBluetooth {
     void enable(Activity someActivity);
     List<String> getPairedDevices();
     void discoverDevices(Activity someActivity);
+    void stopDiscoverDevices();
     void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity);
     void test();
 
