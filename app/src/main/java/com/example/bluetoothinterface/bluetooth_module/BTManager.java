@@ -93,12 +93,12 @@ public class BTManager implements IBluetooth, Cloneable {
         if (temp.size()  > 0 ) {
             for (BluetoothDevice device : temp) {
                 if (device.getName().contains("miPod3")) {
-                    dataStore.setAvailableDevices(device.getName());
+                    dataStore.setAvailableSensors(device.getName());
                     miPods.add(device);
                 }
             }
         }
-        return dataStore.getAvailableDevices();
+        return dataStore.getAvailableSensors();
     }
 
     public void discoverDevices(final Activity someActivity) {
@@ -119,7 +119,7 @@ public class BTManager implements IBluetooth, Cloneable {
                                     @Override
                                     public void run() {
                                         miPods.add(device);
-                                        dataStore.setAvailableDevices(device.getName());
+                                        dataStore.setAvailableSensors(device.getName());
                                         discoveryCB.onDevice();
                                     }
                                 });
@@ -270,13 +270,17 @@ public class BTManager implements IBluetooth, Cloneable {
 
     private void startRead(Activity activity) {
         // List<ISensor> from sensorList
-        for (ISensor sensor: sensorList) {
-            //Create a thread and start reading
-            BluetoothSocket mySocket = findSocket(sensor.getName());
-            ReadStream thread = new ReadStream(sensor, mySocket, activity, communicationCB);
-            if (sensor.getState() == SENSOR_STATE.CONNECTED) {
-                thread.start();
+        try {
+            for (ISensor sensor: sensorList) {
+                //Create a thread and start reading
+                BluetoothSocket mySocket = findSocket(sensor.getName());
+                ReadStream thread = new ReadStream(sensor, mySocket, activity, communicationCB);
+                if (sensor.getState() == SENSOR_STATE.CONNECTED) {
+                    thread.start();
+                }
             }
+        } catch (Exception e) {
+            System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }
     }
 
@@ -326,6 +330,14 @@ public class BTManager implements IBluetooth, Cloneable {
         }
         System.out.println("BTManager::closeSocket, bluetoothSockets " + bluetoothSockets.toString());
         System.out.println("BTManager::closeSocket, sensorList " + sensorList.toString());
+    }
+
+    public void stopReading(String sensorName) {
+        for (ISensor sensor : sensorList) {
+            if (sensorName.equals(sensor.getName())) {
+                sensor.setState(SENSOR_STATE.CONNECTED);
+            }
+        }
     }
 
 }

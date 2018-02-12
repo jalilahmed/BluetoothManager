@@ -25,9 +25,11 @@ public class ISensorActivity extends AppCompatActivity {
     // Sensors
     ArrayList<String> selectedSensors = new ArrayList<>();
 
+    // Data source
+    private IDataHolder dataStore = DataHolder.getInstance();
+
     // Bluetooth objects
     IBluetooth myInterface = BTManager.getInstance();
-    private IDataHolder dataStore = DataHolder.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,23 +57,36 @@ public class ISensorActivity extends AppCompatActivity {
         LeftReadingTV.setBackgroundColor(Color.RED);
         RightReadingTV.setBackgroundColor(Color.RED);
 
-        if (getIntent().hasExtra("Sensors_selected")) {
-            try {
-                selectedSensors = getIntent().getExtras().getStringArrayList("Sensors_selected");
+        try {
+            selectedSensors = dataStore.getSelectedSensors();
+            System.out.println("ISensorActivity :: selected Sensors " + selectedSensors);
 
-                if (selectedSensors != null) {
-                    LeftNameTV.setText(selectedSensors.get(0));
-                    RightNameTV.setText(selectedSensors.get(1));
-                }
-            } catch (Exception e) {
-                System.out.println(e.toString());
+            if (selectedSensors != null) {
+                LeftNameTV.setText(selectedSensors.get(0));
+                RightNameTV.setText(selectedSensors.get(1));
             }
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
 
         ConnectBtn.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 connectISensors();
+            }
+        });
+
+        LeftStopReading.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myInterface.stopReading(selectedSensors.get(0));
+            }
+        });
+
+        RightStopReading.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myInterface.stopReading(selectedSensors.get(1));
             }
         });
     }
@@ -81,6 +96,8 @@ public class ISensorActivity extends AppCompatActivity {
         myInterface.setCommunicationCB( new ICommunicationCallback() {
             @Override
             public void onConnect(BluetoothDevice device) {
+
+                System.out.println("ISensor Activity :: onConnect " + device.getName());
 
                 if (device.getName().equals(selectedSensors.get(0))) {
                     LeftConnectedTV.setBackgroundColor(Color.GREEN);
@@ -114,7 +131,7 @@ public class ISensorActivity extends AppCompatActivity {
 
             @Override
             public void onConnectionLost(BluetoothDevice device) {
-                System.out.println("ISensorActivityonConnectionLost :: device is " + device.getName());
+                System.out.println("ISensorActivity:: onConnectionLost :: device is " + device.getName());
                 if (device.getName().equals(selectedSensors.get(0))) {
                     LeftConnectedTV.setBackgroundColor(Color.RED);
                 } else if (device.getName().equals(selectedSensors.get(1))) {
@@ -134,6 +151,6 @@ public class ISensorActivity extends AppCompatActivity {
             }
         });
 
-        myInterface.connectToMiPods( selectedSensors, ISensorActivity.this );
+        myInterface.connectToMiPods( selectedSensors, ISensorActivity.this);
     }
 }
