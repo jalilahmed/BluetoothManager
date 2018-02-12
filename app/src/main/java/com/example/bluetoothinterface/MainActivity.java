@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             Intent startISensorIntent = new Intent(getApplicationContext(), ISensorActivity.class);
             startISensorIntent.putExtra("Sensors_selected", clickedSensors);
             startActivity(startISensorIntent);
+            clickedSensors.clear();
         } else {
             Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
         }

@@ -1,6 +1,7 @@
 package com.example.bluetoothinterface.interfaces;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothSocket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,9 @@ public interface IBluetooth {
     void stopDiscoverDevices();
     void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity);
     void test();
+    //void closeSocket(BluetoothSocket socket);
+    //void removeSensor(ISensor sensor);
+
 
     // Discovery Callback methods
     void setDiscoveryCB(IDiscoveryCallback discoveryCB);

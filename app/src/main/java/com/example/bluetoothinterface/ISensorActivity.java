@@ -91,37 +91,37 @@ public class ISensorActivity extends AppCompatActivity {
                 }
 
                 Toast.makeText(getApplicationContext(), "Connected to " + device.getName(), Toast.LENGTH_SHORT).show();
-                System.out.println( "Main Activity :: onConnect successful with " + device.getName());
+                System.out.println( "ISensorActivity :: onConnect successful with " + device.getName());
             }
 
             @Override
             public void onError(String message) {
-                System.out.println( "Main Activity :: onError " + message);
+                System.out.println( "ISensorActivity :: onError " + message);
                 myInterface.removeCommunicationCallback();
             }
 
             @Override
             public void onConnectError(String message) {
-                System.out.println( "Main Activity :: onConnectError " + message );
+                System.out.println( "ISensorActivity :: onConnectError " + message );
                 myInterface.removeCommunicationCallback();
             }
 
             @Override
             public void onDisconnect(String message) {
-                System.out.println( "Main Activity :: onDisconnect " + message );
+                System.out.println( "ISensorActivity:: onDisconnect " + message );
                 myInterface.removeCommunicationCallback();
             }
 
             @Override
             public void onConnectionLost(BluetoothDevice device) {
-                System.out.println("onConnectionLost :: device is " + device.getName());
+                System.out.println("ISensorActivityonConnectionLost :: device is " + device.getName());
                 if (device.getName().equals(selectedSensors.get(0))) {
                     LeftConnectedTV.setBackgroundColor(Color.RED);
                 } else if (device.getName().equals(selectedSensors.get(1))) {
                     RightConnectedTV.setBackgroundColor(Color.RED);
                 }
 
-                System.out.println("Lost Communication with " + device.getName());
+                System.out.println("ISensorActivity::Lost Communication with " + device.getName());
             }
 
             @Override

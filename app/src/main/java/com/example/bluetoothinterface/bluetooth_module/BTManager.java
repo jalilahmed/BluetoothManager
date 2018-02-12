@@ -17,6 +17,7 @@ import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -204,6 +205,8 @@ public class BTManager implements IBluetooth, Cloneable {
     }
 
     private void createSockets(Activity activity){
+        bluetoothSockets.clear();
+        System.out.println("in BTManager::createScokets sensorList is:  " + sensorList);
         for (final ISensor sensor : sensorList) {
             BluetoothDevice device = sensor.getDevice();
             try {
@@ -213,6 +216,7 @@ public class BTManager implements IBluetooth, Cloneable {
                     String uuid = uuids[0].toString();
                     BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
                     bluetoothSockets.add( socket );
+                    System.out.println("in BTManager: bluetoothSockets are: " + bluetoothSockets.toString());
                 }
             } catch (final Exception e) {
                 activity.runOnUiThread( new Runnable() {
@@ -228,14 +232,14 @@ public class BTManager implements IBluetooth, Cloneable {
     private void connectISensors(Activity activity) {
         for (final ISensor sensor : sensorList) {
             final BluetoothDevice device = sensor.getDevice();
+            BluetoothSocket socket = null;
             try {
-                BluetoothSocket socket = findSocket(device.getName());
+                socket = findSocket(device.getName());
                 socket.connect();
                 sensor.setState(SENSOR_STATE.CONNECTED);
 
                 // Callback for successful connection
                 if (communicationCB != null) {
-
                     activity.runOnUiThread( new Runnable() {
                         @Override
                         public void run() {
@@ -244,6 +248,12 @@ public class BTManager implements IBluetooth, Cloneable {
                     } );
                 }
             } catch (Exception e) {
+                try {
+                    socket.close();
+                    bluetoothSockets.remove(socket);
+                } catch (IOException exception) {
+                    System.out.println("in BTManager::connectISensors could not close socket");
+                }
                 final String errorMessage = e.toString();
                 if (communicationCB != null) {
                     activity.runOnUiThread( new Runnable() {
@@ -298,8 +308,24 @@ public class BTManager implements IBluetooth, Cloneable {
     }
 
     public void test() {
+
         sensorList.get(0).setState(SENSOR_STATE.CONNECTED);
         sensorList.get(1).setState(SENSOR_STATE.CONNECTED);
+    }
+
+    public void closeSocket(BluetoothSocket socket, ISensor sensor){
+        // Closes the socket
+        // Removes from bluetoothsockets
+        System.out.println("Call came in BTManager::closeSocket.");
+        try {
+            socket.close();
+            bluetoothSockets.remove(socket);
+            sensorList.remove(sensor);
+        } catch(IOException e){
+            System.out.println("Exception occurred in BTManager::closeSockets while closing socket: " + socket.toString());
+        }
+        System.out.println("BTManager::closeSocket, bluetoothSockets " + bluetoothSockets.toString());
+        System.out.println("BTManager::closeSocket, sensorList " + sensorList.toString());
     }
 
 }

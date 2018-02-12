@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 
+import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IQMSensor;
 import com.example.bluetoothinterface.interfaces.ISensor;
@@ -34,6 +35,8 @@ public class ReadStream implements Runnable{
 
         private ICommunicationCallback communicationCB;
 
+        private BTManager IBTManager = BTManager.getInstance();
+
         ReadStream(ISensor mySensor, BluetoothSocket mySocket, Activity activity, ICommunicationCallback BTManagerCommunicationCB){
             InputStream stream = null;
             UIActivity = activity;
@@ -56,7 +59,7 @@ public class ReadStream implements Runnable{
             int lastReadIndex = 0;
             int notProcessedLength = 0;
             int loopCount = 0;
-            ArrayList<DataFrame> localData = new ArrayList<DataFrame>();
+            ArrayList<DataFrame> localData = new ArrayList <DataFrame>();
 
             try {
                 Date startTime = new Date();
@@ -118,6 +121,7 @@ public class ReadStream implements Runnable{
                 }
                 // Thread has stopped reading, callback for UI Thread
                 if (communicationCB != null) {
+                    //TODO: Close socket and remove it from BTManager, bluetoothSockets (CHECK IF NEEDED HERE >> IF NOT_NEEDED JUST SEND A CALLBACK)
                     UIActivity.runOnUiThread( new Runnable() {
                         @Override
                         public void run() {
@@ -126,8 +130,8 @@ public class ReadStream implements Runnable{
                     });
                 }
             } catch (IOException e) {
+                //TODO: Close socket and remove it from BTManage::bluetoothSockets, Corresponding Sensor's ISENSOR object from BTMANAGER::SensorList
                 // Found exception for connection
-                System.out.println("ReadStream CommunicationCallback" + communicationCB);
                 if (communicationCB != null) {
                     UIActivity.runOnUiThread( new Runnable() {
                         @Override
@@ -138,6 +142,7 @@ public class ReadStream implements Runnable{
                     });
                 }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
+                IBTManager.closeSocket(socket, sensor);
             }
             System.out.println("Stopping Thread: " + threadName);
         }
