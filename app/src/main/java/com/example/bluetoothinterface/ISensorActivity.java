@@ -57,23 +57,36 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         LeftReadingTV.setBackgroundColor(Color.RED);
         RightReadingTV.setBackgroundColor(Color.RED);
 
-        if (getIntent().hasExtra("Sensors_selected")) {
-            try {
-                selectedSensors = getIntent().getExtras().getStringArrayList("Sensors_selected");
+        try {
+            selectedSensors = dataStore.getSelectedSensors();
+            System.out.println("ISensorActivity :: selected Sensors " + selectedSensors);
 
-                if (selectedSensors != null) {
-                    LeftNameTV.setText(selectedSensors.get(0));
-                    RightNameTV.setText(selectedSensors.get(1));
-                }
-            } catch (Exception e) {
-                System.out.println(e.toString());
+            if (selectedSensors != null) {
+                LeftNameTV.setText(selectedSensors.get(0));
+                RightNameTV.setText(selectedSensors.get(1));
             }
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
 
         ConnectBtn.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 connectISensors();
+            }
+        });
+
+        LeftStopReading.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myInterface.stopReading(selectedSensors.get(0));
+            }
+        });
+
+        RightStopReading.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myInterface.stopReading(selectedSensors.get(1));
             }
         });
     }

@@ -3,14 +3,14 @@ package com.example.bluetoothinterface;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by jalil on 1/30/2018.
  */
 
 public class DataHolder implements IDataHolder, Cloneable {
-    private List<String> availableDevices = new ArrayList<>();
+    private ArrayList<String> availableDevices = new ArrayList<>();
+    private ArrayList<String> selectedSensors = new ArrayList<>();
 
     private DataHolder () {}
 
@@ -28,11 +28,19 @@ public class DataHolder implements IDataHolder, Cloneable {
         return super.clone();
     }
 
-    public List<String> getAvailableDevices() {
+    public ArrayList<String> getAvailableSensors() {
         return availableDevices;
     }
 
-    public void setAvailableDevices(String newDevice) {
+    public void setAvailableSensors(String newDevice) {
         this.availableDevices.add(newDevice);
+    }
+
+    public ArrayList<String> getSelectedSensors() {
+        return selectedSensors;
+    }
+
+    public void setSelectedSensors(String newSensor) {
+        this.selectedSensors.add(newSensor);
     }
 }

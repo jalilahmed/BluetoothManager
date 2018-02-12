@@ -1,7 +1,6 @@
 package com.example.bluetoothinterface.interfaces;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothSocket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +21,7 @@ public interface IBluetooth {
     void test();
     //void closeSocket(BluetoothSocket socket);
     //void removeSensor(ISensor sensor);
+    void stopReading(String sensor);
 
 
     // Discovery Callback methods

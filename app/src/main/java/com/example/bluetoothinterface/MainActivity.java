@@ -22,7 +22,6 @@ import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.IUICallback;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements IUICallback, IDiscoveryCallback {
     // UI Elements
@@ -32,15 +31,12 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     // ListView variables
     ArrayAdapter<String> btDevicesListViewAdapter;
 
-    // Bluetooth devices list
-    ArrayList<String> clickedSensors = new ArrayList<>();
+    // Data source
+    private IDataHolder dataStore = DataHolder.getInstance();
 
     // Bluetooth objects
     IBluetooth myInterface = BTFactory.getInstance();
-
-
-    private IDataHolder dataStore = DataHolder.getInstance();
-    List<String> allSensors = dataStore.getAvailableDevices();
+    ArrayList<String> allSensors = dataStore.getAvailableSensors();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +78,8 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String clickedItem = allSensors.get(i);
                 btDevicesListView.getChildAt(i).setBackgroundColor(Color.GREEN);
-                clickedSensors.add(clickedItem);
+                dataStore.setSelectedSensors(clickedItem);
+                System.out.println("Main Activity :: selectedSensors " + dataStore.getSelectedSensors());
             }
         });
 
@@ -120,11 +117,9 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     public void Start() {
         myInterface.removeDiscoveryCallback(); //Always remove the discovery callback
         myInterface.stopDiscoverDevices();// Stops the discovering Process if its not finished up till now.
-        if (clickedSensors.size() != 0) {
+        if (dataStore.getSelectedSensors().size() != 0) {
             Intent startISensorIntent = new Intent(getApplicationContext(), ISensorActivity.class);
-            startISensorIntent.putExtra("Sensors_selected", clickedSensors);
             startActivity(startISensorIntent);
-            clickedSensors.clear();
         } else {
             Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
         }
