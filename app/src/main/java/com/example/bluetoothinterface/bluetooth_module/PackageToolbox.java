@@ -7,7 +7,7 @@ import java.util.Arrays;
  * Created by jalil on 2/6/2018.
  */
 
-public class PackageToolbox {
+class PackageToolbox {
     private PackageToolbox () {}
 
     public static PackageToolbox getInstance () {
@@ -24,7 +24,7 @@ public class PackageToolbox {
         return super.clone();
     }
 
-    public int findDataPackages(byte[] buffer, int endIndex, ArrayList<DataFrame> localData) {
+    public int findDataPackages(byte[] buffer, int endIndex, ArrayList<DataFrameFactory> localData) {
         int pos;
         if (endIndex < 0 || endIndex > buffer.length - 1) {
             System.out.println("findNextDataStartPosition: Index out of Range.");
@@ -59,7 +59,7 @@ public class PackageToolbox {
             byte[] DATA = Arrays.copyOfRange(buffer, currentIndex, currentIndex + 28);
 
             try {
-                DataFrame frame = new DataFrame(DATA);
+                DataFrameFactory frame = new DataFrameFactory(DATA);
                 localData.add(frame);
             } catch(Exception e) {
                 System.out.println("findDataPackages::Error sendData: " + e.getMessage());

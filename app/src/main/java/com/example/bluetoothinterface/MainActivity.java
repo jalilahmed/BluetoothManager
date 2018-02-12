@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.bluetoothinterface.bluetooth_module.BTManager;
+import com.example.bluetoothinterface.bluetooth_module.BTFactory;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> clickedSensors = new ArrayList<>();
 
     // Bluetooth objects
-    IBluetooth myInterface = BTManager.getInstance();
+    IBluetooth myInterface = BTFactory.getInstance();
     private IDataHolder dataStore = DataHolder.getInstance();
     List<String> allSensors = dataStore.getAvailableDevices();
 

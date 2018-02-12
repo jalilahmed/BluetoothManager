@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.bluetoothinterface.bluetooth_module.BTManager;
+import com.example.bluetoothinterface.bluetooth_module.BTFactory;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
@@ -26,7 +26,7 @@ public class ISensorActivity extends AppCompatActivity {
     ArrayList<String> selectedSensors = new ArrayList<>();
 
     // Bluetooth objects
-    IBluetooth myInterface = BTManager.getInstance();
+    IBluetooth myInterface = BTFactory.getInstance();
     private IDataHolder dataStore = DataHolder.getInstance();
 
     @Override

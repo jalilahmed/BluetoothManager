@@ -6,4 +6,5 @@ package com.example.bluetoothinterface.bluetooth_module;
 
 public enum SENSOR_STATE {
     CONNECTED, NOT_CONNECTED, READING
+    // todo: Check if it need more. if it needs BUSY
 }

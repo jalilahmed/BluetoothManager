@@ -9,10 +9,10 @@ import java.util.List;
  * Created by jalil on 2/6/2018.
  */
 
-public class QMSensor implements IQMSensor {
+class QMSensor implements IQMSensor {
     private int numberOfFramesLost;
 
-    public int lostFrames(List<DataFrame> last5SecondsData) {
+    public int lostFrames(List<DataFrameFactory> last5SecondsData) {
         int currentCount;
         int nextCount;
         int differenceInCounts;

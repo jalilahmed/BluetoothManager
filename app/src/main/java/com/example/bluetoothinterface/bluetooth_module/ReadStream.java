@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 
-import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IQMSensor;
 import com.example.bluetoothinterface.interfaces.ISensor;
@@ -21,7 +20,7 @@ import java.util.List;
  * Created by Prashant on 05/02/2018.
  */
 
-public class ReadStream implements Runnable{
+class ReadStream implements Runnable{
         private Thread readStreamThread;
         private String threadName;
         private ISensor sensor;
@@ -59,7 +58,7 @@ public class ReadStream implements Runnable{
             int lastReadIndex = 0;
             int notProcessedLength = 0;
             int loopCount = 0;
-            ArrayList<DataFrame> localData = new ArrayList <DataFrame>();
+            ArrayList<DataFrameFactory> localData = new ArrayList<>();
 
             try {
                 Date startTime = new Date();

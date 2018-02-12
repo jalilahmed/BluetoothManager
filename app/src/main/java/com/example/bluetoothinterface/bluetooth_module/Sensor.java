@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothDevice;
 
 import com.example.bluetoothinterface.interfaces.ISensor;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +12,7 @@ import java.util.List;
  * Created by jalil on 1/23/2018.
  */
 
-public class Sensor implements ISensor {
+class Sensor implements ISensor {
 
     // ISensor interface members
     private String name;
@@ -24,7 +23,7 @@ public class Sensor implements ISensor {
 
     //
     private BluetoothDevice device;
-    private List<DataFrame> last5SecondsData;
+    private List<DataFrameFactory> last5SecondsData;
     private Date timeOfLastRead;
 
     Sensor(BluetoothDevice miPodSensor, String pos) {
@@ -59,11 +58,11 @@ public class Sensor implements ISensor {
         return device;
     }
 
-    public void setData(List<DataFrame> data5Seconds) {
+    public void setData(List<DataFrameFactory> data5Seconds) {
         last5SecondsData = data5Seconds;
     }
 
-    public List<DataFrame> getData() {
+    public List<DataFrameFactory> getData() {
         return last5SecondsData;
     }
 

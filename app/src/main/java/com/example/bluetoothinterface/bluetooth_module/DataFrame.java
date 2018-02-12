@@ -7,7 +7,7 @@ import java.util.List;
  * Created by Prashant on 05/02/2018.
  */
 
-public class DataFrame {
+class DataFrame {
     private List<Integer> frame = new ArrayList<>();
     private int count;
 
@@ -44,6 +44,7 @@ public class DataFrame {
         frame.add(gy);
         frame.add(gz);
     }
+
 
     public int getCount() {
         return count;
