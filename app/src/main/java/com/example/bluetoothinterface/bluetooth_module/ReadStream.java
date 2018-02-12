@@ -30,15 +30,12 @@ class ReadStream implements Runnable{
         private InputStream mInputStream;
         private IQMSensor QMSensor;
         private PackageToolbox packageToolbox = PackageToolbox.getInstance();
-        private Activity UIActivity;
-
         private ICommunicationCallback communicationCB;
 
         private BTManager IBTManager = BTManager.getInstance();
 
-        ReadStream(ISensor mySensor, BluetoothSocket mySocket, Activity activity, ICommunicationCallback BTManagerCommunicationCB){
+        ReadStream(ISensor mySensor, BluetoothSocket mySocket, ICommunicationCallback BTManagerCommunicationCB){
             InputStream stream = null;
-            UIActivity = activity;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
@@ -121,24 +118,15 @@ class ReadStream implements Runnable{
                 // Thread has stopped reading, callback for UI Thread
                 if (communicationCB != null) {
                     //TODO: Close socket and remove it from BTManager, bluetoothSockets (CHECK IF NEEDED HERE >> IF NOT_NEEDED JUST SEND A CALLBACK)
-                    UIActivity.runOnUiThread( new Runnable() {
-                        @Override
-                        public void run() {
-                            communicationCB.onStopReading(sensor.getDevice());
-                        }
-                    });
+                        communicationCB.onStopReading(sensor.getDevice());
                 }
             } catch (IOException e) {
                 //TODO: Close socket and remove it from BTManage::bluetoothSockets, Corresponding Sensor's ISENSOR object from BTMANAGER::SensorList
                 // Found exception for connection
                 if (communicationCB != null) {
-                    UIActivity.runOnUiThread( new Runnable() {
-                        @Override
-                        public void run() {
-                            communicationCB.onConnectionLost(sensor.getDevice());
-                            communicationCB.onStopReading(sensor.getDevice());
-                        }
-                    });
+                    communicationCB.onConnectionLost(sensor.getDevice());
+                    communicationCB.onStopReading(sensor.getDevice());
+
                 }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
                 IBTManager.closeSocket(socket, sensor);

@@ -16,7 +16,7 @@ import com.example.bluetoothinterface.interfaces.IDataHolder;
 
 import java.util.ArrayList;
 
-public class ISensorActivity extends AppCompatActivity {
+public class ISensorActivity extends AppCompatActivity implements ICommunicationCallback{
 
     // UI Elements
     TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV;
@@ -33,6 +33,8 @@ public class ISensorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_isensor );
+        // Setting Callback
+        myInterface.setCommunicationCB(this);
 
         // Initializing all views
         LeftNameTV = findViewById(R.id.ISensorLeftName);
@@ -77,63 +79,60 @@ public class ISensorActivity extends AppCompatActivity {
     }
 
     public void connectISensors() {
+        myInterface.connectToMiPods(selectedSensors);
+    }
 
-        myInterface.setCommunicationCB( new ICommunicationCallback() {
-            @Override
-            public void onConnect(BluetoothDevice device) {
+    @Override
+    public void onConnect(BluetoothDevice device) {
 
-                if (device.getName().equals(selectedSensors.get(0))) {
-                    LeftConnectedTV.setBackgroundColor(Color.GREEN);
-                    LeftReadingTV.setBackgroundColor(Color.GREEN);
-                } else if (device.getName().equals(selectedSensors.get(1))) {
-                    RightConnectedTV.setBackgroundColor(Color.GREEN);
-                    RightReadingTV.setBackgroundColor(Color.GREEN);
-                }
+        if (device.getName().equals(selectedSensors.get(0))) {
+            LeftConnectedTV.setBackgroundColor(Color.GREEN);
+            LeftReadingTV.setBackgroundColor(Color.GREEN);
+        } else if (device.getName().equals(selectedSensors.get(1))) {
+            RightConnectedTV.setBackgroundColor(Color.GREEN);
+            RightReadingTV.setBackgroundColor(Color.GREEN);
+        }
 
-                Toast.makeText(getApplicationContext(), "Connected to " + device.getName(), Toast.LENGTH_SHORT).show();
-                System.out.println( "ISensorActivity :: onConnect successful with " + device.getName());
-            }
+        Toast.makeText(getApplicationContext(), "Connected to " + device.getName(), Toast.LENGTH_SHORT).show();
+        System.out.println( "ISensorActivity :: onConnect successful with " + device.getName());
+    }
 
-            @Override
-            public void onError(String message) {
-                System.out.println( "ISensorActivity :: onError " + message);
-                myInterface.removeCommunicationCallback();
-            }
+    @Override
+    public void onError(String message) {
+        System.out.println( "ISensorActivity :: onError " + message);
+        myInterface.removeCommunicationCallback();
+    }
 
-            @Override
-            public void onConnectError(String message) {
-                System.out.println( "ISensorActivity :: onConnectError " + message );
-                myInterface.removeCommunicationCallback();
-            }
+    @Override
+    public void onConnectError(String message) {
+        System.out.println( "ISensorActivity :: onConnectError " + message );
+        myInterface.removeCommunicationCallback();
+    }
 
-            @Override
-            public void onDisconnect(String message) {
-                System.out.println( "ISensorActivity:: onDisconnect " + message );
-                myInterface.removeCommunicationCallback();
-            }
+    @Override
+    public void onDisconnect(String message) {
+        System.out.println( "ISensorActivity:: onDisconnect " + message );
+        myInterface.removeCommunicationCallback();
+    }
 
-            @Override
-            public void onConnectionLost(BluetoothDevice device) {
-                System.out.println("ISensorActivityonConnectionLost :: device is " + device.getName());
-                if (device.getName().equals(selectedSensors.get(0))) {
-                    LeftConnectedTV.setBackgroundColor(Color.RED);
-                } else if (device.getName().equals(selectedSensors.get(1))) {
-                    RightConnectedTV.setBackgroundColor(Color.RED);
-                }
+    @Override
+    public void onConnectionLost(BluetoothDevice device) {
+        System.out.println("ISensorActivityonConnectionLost :: device is " + device.getName());
+        if (device.getName().equals(selectedSensors.get(0))) {
+            LeftConnectedTV.setBackgroundColor(Color.RED);
+        } else if (device.getName().equals(selectedSensors.get(1))) {
+            RightConnectedTV.setBackgroundColor(Color.RED);
+        }
 
-                System.out.println("ISensorActivity::Lost Communication with " + device.getName());
-            }
+        System.out.println("ISensorActivity::Lost Communication with " + device.getName());
+    }
 
-            @Override
-            public void onStopReading(BluetoothDevice device) {
-                if (device.getName().equals(selectedSensors.get(0))) {
-                    LeftReadingTV.setBackgroundColor(Color.RED);
-                } else if (device.getName().equals(selectedSensors.get(1))) {
-                    RightReadingTV.setBackgroundColor(Color.RED);
-                }
-            }
-        });
-
-        myInterface.connectToMiPods( selectedSensors, ISensorActivity.this );
+    @Override
+    public void onStopReading(BluetoothDevice device) {
+        if (device.getName().equals(selectedSensors.get(0))) {
+            LeftReadingTV.setBackgroundColor(Color.RED);
+        } else if (device.getName().equals(selectedSensors.get(1))) {
+            RightReadingTV.setBackgroundColor(Color.RED);
+        }
     }
 }

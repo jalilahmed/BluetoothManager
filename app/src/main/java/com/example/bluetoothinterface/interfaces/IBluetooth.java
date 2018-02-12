@@ -14,11 +14,11 @@ public interface IBluetooth {
 
     // BT Module methods
     boolean isEnabled();
-    void enable(Activity someActivity);
+    void enable();
     List<String> getPairedDevices();
-    void discoverDevices(Activity someActivity);
+    void discoverDevices();
     void stopDiscoverDevices();
-    void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity);
+    void connectToMiPods(ArrayList<String> miPodsDevicesNames);
     void test();
     //void closeSocket(BluetoothSocket socket);
     //void removeSensor(ISensor sensor);
@@ -27,6 +27,8 @@ public interface IBluetooth {
     // Discovery Callback methods
     void setDiscoveryCB(IDiscoveryCallback discoveryCB);
     void removeDiscoveryCallback();
+    void setUICallback(IUICallback UICallback);
+    void removeUICallback();
 
     // Communication Callback methods
     void setCommunicationCB(ICommunicationCallback communicationCB);

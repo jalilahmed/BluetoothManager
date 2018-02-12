@@ -16,6 +16,7 @@ import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
+import com.example.bluetoothinterface.interfaces.IUICallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ class BTManager implements IBluetooth, Cloneable {
     // Callback Interface Declarations
     private IDiscoveryCallback discoveryCB;
     private ICommunicationCallback communicationCB;
+    private IUICallback UICallback;
+
 
     // Definitions
     private BluetoothAdapter myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -74,11 +77,10 @@ class BTManager implements IBluetooth, Cloneable {
     }
 
     /* Enable bluetooth on user request */
-    public void enable(Activity someActivity) {
+    public void enable() {
         if (myBluetoothAdapter != null) {
             try {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                someActivity.startActivityForResult(enableBtIntent, 1);
+                UICallback.startBluetooth();
                 STATE = BT_STATES.ON;
             } catch (Exception e) {
                 // TODO: Handle the exception ??
@@ -101,7 +103,7 @@ class BTManager implements IBluetooth, Cloneable {
         return dataStore.getAvailableDevices();
     }
 
-    public void discoverDevices(final Activity someActivity) {
+    public void discoverDevices() {
         discoverDevicesReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -114,43 +116,22 @@ class BTManager implements IBluetooth, Cloneable {
                             final BluetoothDevice device = intent.getParcelableExtra( BluetoothDevice.EXTRA_DEVICE );
                             System.out.println("BTManager :: Found a device " + device.getName());
 
-                            if (discoveryCB != null && device.getName() != null && device.getName().contains("miPod3")) {
-                                someActivity.runOnUiThread( new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        miPods.add(device);
-                                        dataStore.setAvailableDevices(device.getName());
-                                        discoveryCB.onDevice();
-                                    }
-                                });
+                            if (device.getName() != null && device.getName().contains("miPod3")) {
+                                miPods.add(device);
+                                dataStore.setAvailableDevices(device.getName());
+                                discoveryCB.onDevice();
                             }
                             break;
                         case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                             STATE = BT_STATES.ON;
                             context.unregisterReceiver( discoverDevicesReceiver );
                             System.out.println("BTManager :: Discovery finished ");
-
-                            if (discoveryCB != null) {
-                                someActivity.runOnUiThread( new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        discoveryCB.onFinish();
-                                    }
-                                } );
-                            }
+                            discoveryCB.onFinish();
                             break;
                         case BluetoothAdapter.ACTION_STATE_CHANGED:
                             final int state = intent.getIntExtra( BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR );
-
                             if (state == BluetoothAdapter.STATE_OFF) {
-                                if (discoveryCB != null) {
-                                    someActivity.runOnUiThread( new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            discoveryCB.onError( "Bluetooth switched off" );
-                                        }
-                                    } );
-                                }
+                                discoveryCB.onError( "Bluetooth switched off" );
                             }
                             break;
                     }
@@ -168,11 +149,13 @@ class BTManager implements IBluetooth, Cloneable {
         discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_STATE_CHANGED );
         discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_DISCOVERY_FINISHED );
 
-        someActivity.registerReceiver( discoverDevicesReceiver, discoverDevicesIntent );
+        UICallback.registerReceiver(discoverDevicesIntent, discoverDevicesReceiver);
+
         if (STATE == BT_STATES.ON) {
             STATE = BT_STATES.DISCOVERING;
             myBluetoothAdapter.startDiscovery();
         }
+
     }
 
     public void stopDiscoverDevices() {
@@ -181,16 +164,16 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    public void connectToMiPods(ArrayList<String> miPodsDevicesNames, Activity someActivity) {
+    public void connectToMiPods(ArrayList<String> miPodsDevicesNames) {
         myBluetoothAdapter.cancelDiscovery();
 
         setISensorList(miPodsDevicesNames);
 
-        createSockets(someActivity);
+        createSockets();
 
-        connectISensors(someActivity);
+        connectISensors();
 
-        startRead(someActivity);
+        startRead();
 
     }
 
@@ -204,7 +187,7 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    private void createSockets(Activity activity){
+    private void createSockets(){
         bluetoothSockets.clear();
         System.out.println("in BTManager::createScokets sensorList is:  " + sensorList);
         for (final ISensor sensor : sensorList) {
@@ -219,17 +202,12 @@ class BTManager implements IBluetooth, Cloneable {
                     System.out.println("in BTManager: bluetoothSockets are: " + bluetoothSockets.toString());
                 }
             } catch (final Exception e) {
-                activity.runOnUiThread( new Runnable() {
-                    @Override
-                    public void run() {
-                        communicationCB.onError( e.getMessage() );
-                    }
-                } );
+                communicationCB.onError(e.getMessage());
             }
         }
     }
 
-    private void connectISensors(Activity activity) {
+    private void connectISensors() {
         for (final ISensor sensor : sensorList) {
             final BluetoothDevice device = sensor.getDevice();
             BluetoothSocket socket = null;
@@ -240,12 +218,7 @@ class BTManager implements IBluetooth, Cloneable {
 
                 // Callback for successful connection
                 if (communicationCB != null) {
-                    activity.runOnUiThread( new Runnable() {
-                        @Override
-                        public void run() {
-                            communicationCB.onConnect( device );
-                        }
-                    } );
+                    communicationCB.onConnect( device );
                 }
             } catch (Exception e) {
                 try {
@@ -256,32 +229,27 @@ class BTManager implements IBluetooth, Cloneable {
                 }
                 final String errorMessage = e.toString();
                 if (communicationCB != null) {
-                    activity.runOnUiThread( new Runnable() {
-                        @Override
-                        public void run() {
-                            communicationCB.onConnectError(errorMessage);
-                            sensor.setState(SENSOR_STATE.NOT_CONNECTED);
-                        }
-                    });
+                    communicationCB.onConnectError(errorMessage);
+                    sensor.setState(SENSOR_STATE.NOT_CONNECTED);
                 }
             }
         }
     }
 
-    private void startRead(Activity activity) {
+    private void startRead () {
         // List<ISensor> from sensorList
         for (ISensor sensor: sensorList) {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
-            ReadStream thread = new ReadStream(sensor, mySocket, activity, communicationCB);
+            ReadStream thread = new ReadStream(sensor, mySocket, communicationCB);
             if (sensor.getState() == SENSOR_STATE.CONNECTED) {
                 thread.start();
             }
         }
     }
 
-    public void setDiscoveryCB(IDiscoveryCallback discoveryCB) {
-        this.discoveryCB = discoveryCB;
+    public void setDiscoveryCB(IDiscoveryCallback inputDiscoveryCB) {
+        discoveryCB = inputDiscoveryCB;
     }
 
     public void setCommunicationCB(ICommunicationCallback communicationCB) {
@@ -328,4 +296,11 @@ class BTManager implements IBluetooth, Cloneable {
         System.out.println("BTManager::closeSocket, sensorList " + sensorList.toString());
     }
 
+    public void setUICallback(IUICallback inputUICallback){
+        UICallback = inputUICallback;
+    }
+
+    public void removeUICallback() {
+        UICallback = null;
+    }
 }

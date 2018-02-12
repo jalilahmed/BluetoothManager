@@ -1,6 +1,10 @@
 package com.example.bluetoothinterface;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,11 +19,12 @@ import com.example.bluetoothinterface.bluetooth_module.BTFactory;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
+import com.example.bluetoothinterface.interfaces.IUICallback;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IUICallback, IDiscoveryCallback {
     // UI Elements
     Button startDiscoveryScanBtn, startBtn, enableBTBtn;
     ListView btDevicesListView;
@@ -32,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
 
     // Bluetooth objects
     IBluetooth myInterface = BTFactory.getInstance();
+
+
     private IDataHolder dataStore = DataHolder.getInstance();
     List<String> allSensors = dataStore.getAvailableDevices();
 
@@ -39,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Setting Callback
+        setCallbacks();
 
         // Initializing all views
         enableBTBtn = findViewById(R.id.enableBTBtn);
@@ -85,11 +95,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void setCallbacks(){
+        myInterface.setUICallback(this);
+        myInterface.setDiscoveryCB(this);
+    }
+
     public void enableBluetooth () {
 
         if (!myInterface.isEnabled()) {
             try {
-                myInterface.enable(MainActivity.this);
+                myInterface.enable();
                 System.out.println("Bluetooth enabled");
             }
             catch (Exception e) {
@@ -99,23 +114,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startDiscovery() {
-        myInterface.discoverDevices(MainActivity.this);
-        myInterface.setDiscoveryCB(new IDiscoveryCallback() {
-            @Override
-            public void onDevice() {
-                btDevicesListViewAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onFinish() {
-                myInterface.removeDiscoveryCallback(); //Always remove the discovery callback
-            }
-
-            @Override
-            public void onError(String message) {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
+        myInterface.discoverDevices();
     }
 
     public void Start() {
@@ -129,5 +128,32 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void startBluetooth() {
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        this.startActivityForResult(enableBtIntent, 1);
+    }
+
+    @Override
+    public void registerReceiver(IntentFilter filter, BroadcastReceiver receiver) {
+        System.out.println("MainActivity:: registerReceiver");
+        this.registerReceiver( receiver, filter );
+    }
+
+    @Override
+    public void onDevice() {
+        btDevicesListViewAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onFinish() {
+        myInterface.removeDiscoveryCallback(); //Always remove the discovery callback
+    }
+
+    @Override
+    public void onError(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 }
