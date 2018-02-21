@@ -1,7 +1,6 @@
 package com.example.bluetoothinterface;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -62,7 +61,9 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
 
         btDevicesListViewAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, allSensors);
         btDevicesListView.setAdapter(btDevicesListViewAdapter);
-        myInterface.getPairedDevices();
+
+        // Set all paired devices in DataStore
+        myInterface.setPairedDevices();
 
         // Start discovery button onClick
         startDiscoveryScanBtn.setOnClickListener(new View.OnClickListener() {

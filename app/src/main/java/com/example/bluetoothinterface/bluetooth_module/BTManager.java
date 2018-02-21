@@ -19,7 +19,6 @@ import com.example.bluetoothinterface.interfaces.IUICallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -88,8 +87,8 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    /* Get all paired devices */
-    public List<String> getPairedDevices(){
+    /* Sett all paired devices in dataStore */
+    public void setPairedDevices(){
         Set<BluetoothDevice> temp = myBluetoothAdapter.getBondedDevices();
         if (temp.size()  > 0 ) {
             for (BluetoothDevice device : temp) {
@@ -99,7 +98,6 @@ class BTManager implements IBluetooth, Cloneable {
                 }
             }
         }
-        return dataStore.getAvailableSensors();
     }
 
     public void discoverDevices() {
@@ -306,6 +304,7 @@ class BTManager implements IBluetooth, Cloneable {
     public void removeUICallback() {
         UICallback = null;
     }
+
     public void stopReading(String sensorName) {
         for (ISensor sensor : sensorList) {
             if (sensorName.equals(sensor.getName())) {
@@ -313,5 +312,4 @@ class BTManager implements IBluetooth, Cloneable {
             }
         }
     }
-
 }
