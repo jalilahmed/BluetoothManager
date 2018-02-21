@@ -10,6 +10,6 @@ import java.util.List;
  */
 
 public interface IQMSensor {
-    double lostFrames(List<DataFrameFactory> last5SecondsData);
+    int lostFrames(List<DataFrameFactory> last5SecondsData);
     boolean shouldDisconnect(Date lastReadTime);
 }

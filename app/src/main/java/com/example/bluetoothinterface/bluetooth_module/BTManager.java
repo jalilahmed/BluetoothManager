@@ -39,7 +39,6 @@ class BTManager implements IBluetooth, Cloneable {
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
-    //TODO: Use this array in StartReading Function made by Prashant
     private ArrayList<ReadStream> threadList = new ArrayList<>();
 
     // Callback Interface Declarations
@@ -268,8 +267,8 @@ class BTManager implements IBluetooth, Cloneable {
         return null;
     }
 
-    public void test() {
-        sensorList.get(0).setState(SENSOR_STATE.CONNECTED);
+    public void stopReading(int index) {
+        sensorList.get(index).setState(SENSOR_STATE.CONNECTED);
         //sensorList.get(1).setState(SENSOR_STATE.CONNECTED);
     }
 
@@ -299,18 +298,10 @@ class BTManager implements IBluetooth, Cloneable {
     public void startReading(String sensorName) {
         for (ISensor sensor : sensorList) {
             if (sensorName.equals(sensor.getName())) {
-
                 try {
                     //Create a thread and start reading
                     BluetoothSocket mySocket = findSocket(sensor.getName());
-                    ReadStream thread = new ReadStream(sensor, mySocket, communicationCB);
-                    threadList.add(thread);
-                    if (sensor.getState() == SENSOR_STATE.CONNECTED) {
-                        //TODO: What should we do if the state of ISensosr is not_Connected.
-                        thread.start();
-                        System.out.println("BTManager :: startReading for sensor " + sensorName);
-                        System.out.println("BTManager:: startReading state of thread" + thread.getState().toString());
-                    }
+                    sensor.startReadISensor(mySocket, communicationCB);
                 } catch (Exception e) {
                     System.out.println("BTManager :startRead exception for sensor " + e.toString());
                 }
@@ -318,4 +309,6 @@ class BTManager implements IBluetooth, Cloneable {
             }
         }
     }
+
+
 }

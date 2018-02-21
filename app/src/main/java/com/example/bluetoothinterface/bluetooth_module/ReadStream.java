@@ -33,7 +33,7 @@ class ReadStream implements Runnable{
 
         private BTManager IBTManager = BTManager.getInstance();
 
-        ReadStream(ISensor mySensor, BluetoothSocket mySocket, ICommunicationCallback BTManagerCommunicationCB){
+        ReadStream(Sensor mySensor,BluetoothSocket mySocket,  ICommunicationCallback BTManagerCommunicationCB){
             InputStream stream = null;
             threadName = mySensor.getName();
             sensor = mySensor;
@@ -83,10 +83,6 @@ class ReadStream implements Runnable{
                                 //Todo: going in this exception :: Reaction??
                                 System.out.println("Exception in copying of range " + e.toString());
                             }
-//                          TODO Check if the replaced method of System.arraycopy is working good
-//                            for (int i = 0; i < notProcessed.length; i++) {
-//                                buffer[i] = notProcessed[i];
-//                            }
                             System.arraycopy(notProcessed, 0, buffer, 0, notProcessed.length);
                         }
                     }
@@ -96,15 +92,16 @@ class ReadStream implements Runnable{
                         startTime = nowTime;
                         // Check for Lost Frames (Quality Check)
                         //TODO:: Check Logic Here. if the percentage is working good.
-                        double ISensorLostFrames = QMSensor.lostFrames(localData);
+                        int ISensorLostFrames = QMSensor.lostFrames(localData);
 
-                        if (ISensorLostFrames >= 50.0) {
+                        if (ISensorLostFrames >= 50000) {
                             sensor.setState(SENSOR_STATE.CONNECTED);
                             System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
                             break;
                         }
 
                         sensor.setData(localData);
+                        localData.clear();
                     }
 
                     if (QMSensor.shouldDisconnect(sensor.getLastReadTime())) {
@@ -119,10 +116,9 @@ class ReadStream implements Runnable{
                         communicationCB.onStopReading(sensor.getDevice());
                 }
             } catch (IOException e) {
-                //TODO: Close socket and remove it from BTManage::bluetoothSockets, Corresponding Sensor's ISENSOR object from BTMANAGER::SensorList
-                // Found exception for connection
                 if (communicationCB != null) {
-//                    communicationCB.onConnectionLost(sensor.getDevice());
+                    communicationCB.onConnectionLost(sensor.getDevice());
+                    communicationCB.onStopReading(sensor.getDevice());
                 }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
                 IBTManager.closeSocket(socket, sensor);

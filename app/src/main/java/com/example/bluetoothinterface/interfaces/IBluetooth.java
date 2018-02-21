@@ -13,7 +13,7 @@ public interface IBluetooth {
     void discoverDevices();
     void stopDiscoverDevices();
     void connectToMiPod(String miPodSensorName);
-    void test();
+    void stopReading(int sensorIndex);
     //void closeSocket(BluetoothSocket socket);
     //void removeSensor(ISensor sensor);
     void startReading(String sensor);

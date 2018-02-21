@@ -11,16 +11,20 @@ import java.util.List;
 
 class QMSensor implements IQMSensor {
 
-    public double lostFrames(List<DataFrameFactory> last5SecondsData) {
+    public int lostFrames(List<DataFrameFactory> last5SecondsData) {
         int startCount;
         int endCount;
+        int lostFrames;
         int size = last5SecondsData.size();
 
         startCount = last5SecondsData.get(0).getCount();
         endCount = last5SecondsData.get(size - 1).getCount();
+        lostFrames = endCount - (startCount + size - 1);
+        float percentage = (float) (lostFrames / (size + lostFrames ) ) * 100.f;
+        System.out.println("Frame Loss in percentage " + percentage);
+        System.out.println("Start Count :" + startCount + "  End Count :" + endCount + "  Frame Loss " + lostFrames + "\n\n\n");
 
-        double lostFramePercent = ((endCount - startCount) / size ) * 100;
-        return 1.0;
+        return lostFrames;
     }
 
 

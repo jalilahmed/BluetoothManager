@@ -1,7 +1,9 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 
+import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.Date;
@@ -19,7 +21,8 @@ class Sensor implements ISensor {
     private String macAddress;
     private SENSOR_STATE state;
     private String position;
-
+    private ReadStream thread;
+    private BluetoothSocket socket;
 
     //
     private BluetoothDevice device;
@@ -72,6 +75,24 @@ class Sensor implements ISensor {
 
     public Date getLastReadTime() {
         return timeOfLastRead;
+    }
+
+    public void startReadISensor(BluetoothSocket socket, ICommunicationCallback CommunicationCB) {
+        //Todo: Handle Callback for exception
+        try{
+            thread = new ReadStream(this, socket, CommunicationCB );
+            if (state == SENSOR_STATE.CONNECTED){
+                // Todo: if state is different
+                thread.start();
+            }
+        } catch(Exception e){
+            System.out.println("Exception in ISensor :" + name + " : " + e.toString());
+        }
+
+    }
+
+    public Thread.State getThreadStateISensor() {
+        return thread.getState();
     }
 
 }

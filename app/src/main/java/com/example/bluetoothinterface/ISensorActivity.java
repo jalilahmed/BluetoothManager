@@ -71,7 +71,14 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         LeftDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.test();
+                myInterface.stopReading(0);
+            }
+        });
+
+        RightDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myInterface.stopReading(1);
             }
         });
     }
@@ -154,9 +161,23 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     }
 
     @Override
-    public void onConnectionLost(BluetoothDevice device) {
+    public void onConnectionLost(final BluetoothDevice device) {
         System.out.println("ISensorActivity onConnectionLost :: device is " + device.getName());
-        LeftConnectedTV.setTextColor(Color.RED);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (selectedSensors.size() == 1) {
+                    LeftConnectedTV.setTextColor(Color.RED);
+                } else {
+                    if (device.getName().equals(selectedSensors.get(0))) {
+                        LeftConnectedTV.setTextColor(Color.RED);
+                    } else if (device.getName().equals(selectedSensors.get(1))) {
+                        RightConnectedTV.setTextColor(Color.RED);
+                    }
+                }
+            }
+        });
+
         System.out.println("ISensorActivity::Lost Communication with " + device.getName());
     }
 
@@ -168,23 +189,29 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
             if (device.getName().equals(selectedSensors.get(0))) {
                 LeftReadingTV.setTextColor(Color.GREEN);
             } else if (device.getName().equals(selectedSensors.get(1))) {
-                LeftReadingTV.setTextColor(Color.GREEN);
+                RightReadingTV.setTextColor(Color.GREEN);
             }
         }
     }
 
     @Override
-    public void onStopReading(BluetoothDevice device) {
+    public void onStopReading(final BluetoothDevice device) {
         System.out.println("in ISensorActivity::onStopReading ");
-
-        if (selectedSensors.size() == 1) {
-            LeftReadingTV.setTextColor(Color.RED);
-        } else {
-            if (device.getName().equals(selectedSensors.get(0))) {
-                LeftReadingTV.setTextColor(Color.RED);
-            } else if (device.getName().equals(selectedSensors.get(1))) {
-                LeftReadingTV.setTextColor(Color.RED);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (selectedSensors.size() == 1) {
+                    LeftReadingTV.setTextColor(Color.RED);
+                } else {
+                    if (device.getName().equals(selectedSensors.get(0))) {
+                        LeftReadingTV.setTextColor(Color.RED);
+                    } else if (device.getName().equals(selectedSensors.get(1))) {
+                        RightReadingTV.setTextColor(Color.RED);
+                    }
+                }
             }
-        }
+        });
+
     }
+
 }
