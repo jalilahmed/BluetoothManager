@@ -3,6 +3,7 @@ package com.example.bluetoothinterface.bluetooth_module;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 
+import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IQMSensor;
 import com.example.bluetoothinterface.interfaces.ISensor;
@@ -20,18 +21,22 @@ import java.util.List;
  */
 
 class ReadStream implements Runnable{
+
+        //  Private attributes
         private Thread readStreamThread;
         private String threadName;
         private ISensor sensor;
         private BluetoothSocket socket;
-        public List<Integer> data = new ArrayList<>();
-        private byte [] buffer;
         private InputStream mInputStream;
         private IQMSensor QMSensor;
         private PackageToolbox packageToolbox = PackageToolbox.getInstance();
         private ICommunicationCallback communicationCB;
 
-        private BTManager IBTManager = BTManager.getInstance();
+        //  Public Attributes
+        public List<Integer> data = new ArrayList<>();
+
+        // BTManger Instance
+        private IBluetooth IBTManager = BTManager.getInstance();
 
         ReadStream(Sensor mySensor,BluetoothSocket mySocket,  ICommunicationCallback BTManagerCommunicationCB){
             InputStream stream = null;
@@ -50,14 +55,14 @@ class ReadStream implements Runnable{
 
         @Override
         public void run() {
-            byte[] buffer = new byte[16384];
+            byte [] buffer = new byte[16384];
             int lastReadIndex = 0;
             int notProcessedLength = 0;
             int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
+
             try {
                 Date startTime = new Date();
-
                 while (sensor.getState() == SENSOR_STATE.READING) {
                     //TODO: Stefan Wrote this in try catch block
                     SystemClock.sleep(250);
@@ -122,6 +127,9 @@ class ReadStream implements Runnable{
                 }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
                 IBTManager.closeSocket(socket, sensor);
+            }
+            if(sensor.getState() != SENSOR_STATE.CONNECTED) {
+                sensor.setState(SENSOR_STATE.CONNECTED);
             }
             System.out.println("Stopping Thread: " + threadName);
         }

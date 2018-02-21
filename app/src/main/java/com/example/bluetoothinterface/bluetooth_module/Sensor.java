@@ -16,15 +16,12 @@ import java.util.List;
 
 class Sensor implements ISensor {
 
-    // ISensor interface members
     private String name;
     private String macAddress;
     private SENSOR_STATE state;
     private String position;
     private ReadStream thread;
-    private BluetoothSocket socket;
 
-    //
     private BluetoothDevice device;
     private List<DataFrameFactory> last5SecondsData;
     private Date timeOfLastRead;

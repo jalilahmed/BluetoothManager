@@ -39,7 +39,6 @@ class BTManager implements IBluetooth, Cloneable {
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
-    private ArrayList<ReadStream> threadList = new ArrayList<>();
 
     // Callback Interface Declarations
     private IDiscoveryCallback discoveryCB;
@@ -165,32 +164,29 @@ class BTManager implements IBluetooth, Cloneable {
     public void connectToMiPod(String miPodSensorName) {
         myBluetoothAdapter.cancelDiscovery();
 
-        setISensorList(miPodSensorName);
+        ISensor mySensor = setISensorList(miPodSensorName);
 
-        createSocket(miPodSensorName);
+        createSocket(mySensor);
 
-        connectISensor(miPodSensorName);
+        connectISensor(mySensor);
     }
 
-    private void setISensorList(String miPodSensorName) {
+    private ISensor setISensorList(String miPodSensorName) {
+        ISensor sensor = null;
         for (BluetoothDevice device : miPods) {
             if (miPodSensorName.equals(device.getName())) {
-                ISensor sensor = new Sensor( device, "left" );
+                sensor = new Sensor( device, "left" );
                 sensorList.add(sensor);
+                dataStore.setISensor(sensor);
             }
         }
+        return sensor;
     }
 
-    private void createSocket(String miPodSensorName){
+    private void createSocket(ISensor sensor){
 
         System.out.println("in BTManager::createScokets sensorList is:  " + sensorList);
-        BluetoothDevice device = null;
-
-        for (final ISensor sensor : sensorList) {
-            if (sensor.getName().equals(miPodSensorName)) {
-                device = sensor.getDevice();
-            }
-        }
+        BluetoothDevice device = sensor.getDevice();
 
         try {
             if (device != null) {
@@ -206,38 +202,33 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    private void connectISensor(String miPodSensorName) {
-        for (final ISensor sensor : sensorList) {
-            BluetoothDevice device;
+    private void connectISensor(ISensor sensor) {
+        BluetoothDevice device = sensor.getDevice();
 
-            if (sensor.getName().equals(miPodSensorName)) {
-                device = sensor.getDevice();
+        BluetoothSocket socket = null;
+        try {
+            socket = findSocket(device.getName());
+            socket.connect();
+            sensor.setState(SENSOR_STATE.CONNECTED);
 
-                BluetoothSocket socket = null;
-                try {
-                    socket = findSocket(device.getName());
-                    socket.connect();
-                    sensor.setState(SENSOR_STATE.CONNECTED);
-
-                    // Callback for successful connection
-                    if (communicationCB != null) {
-                        communicationCB.onConnect( device );
-                    }
-                } catch (Exception e) {
-                    try {
-                        socket.close();
-                        bluetoothSockets.remove(socket);
-                    } catch (IOException exception) {
-                        System.out.println("in BTManager::connectISensors could not close socket");
-                    }
-                    final String errorMessage = e.toString();
-                    if (communicationCB != null) {
-                        communicationCB.onConnectError(errorMessage);
-                        sensor.setState(SENSOR_STATE.NOT_CONNECTED);
-                    }
-                }
+            // Callback for successful connection
+            if (communicationCB != null) {
+                communicationCB.onConnect( device );
+            }
+        } catch (Exception e) {
+            try {
+                socket.close();
+                bluetoothSockets.remove(socket);
+            } catch (IOException exception) {
+                System.out.println("in BTManager::connectISensors could not close socket");
+            }
+            final String errorMessage = e.toString();
+            if (communicationCB != null) {
+                communicationCB.onConnectError(errorMessage);
+                sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             }
         }
+
     }
 
     public void setDiscoveryCB(IDiscoveryCallback inputDiscoveryCB) {
@@ -267,14 +258,11 @@ class BTManager implements IBluetooth, Cloneable {
         return null;
     }
 
-    public void stopReading(int index) {
-        sensorList.get(index).setState(SENSOR_STATE.CONNECTED);
-        //sensorList.get(1).setState(SENSOR_STATE.CONNECTED);
+    public void stopReading(ISensor sensor) {
+        sensor.setState(SENSOR_STATE.CONNECTED);
     }
 
     public void closeSocket(BluetoothSocket socket, ISensor sensor){
-        // Closes the socket
-        // Removes from bluetoothsockets
         System.out.println("Call came in BTManager::closeSocket.");
         try {
             socket.close();
@@ -295,18 +283,13 @@ class BTManager implements IBluetooth, Cloneable {
         UICallback = null;
     }
 
-    public void startReading(String sensorName) {
-        for (ISensor sensor : sensorList) {
-            if (sensorName.equals(sensor.getName())) {
-                try {
-                    //Create a thread and start reading
-                    BluetoothSocket mySocket = findSocket(sensor.getName());
-                    sensor.startReadISensor(mySocket, communicationCB);
-                } catch (Exception e) {
-                    System.out.println("BTManager :startRead exception for sensor " + e.toString());
-                }
-
-            }
+    public void startReading(ISensor sensor) {
+        try {
+            //Create a thread and start reading
+            BluetoothSocket mySocket = findSocket(sensor.getName());
+            sensor.startReadISensor(mySocket, communicationCB);
+        } catch (Exception e) {
+            System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }
     }
 

@@ -1,6 +1,10 @@
 package com.example.bluetoothinterface;
 
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+
 import com.example.bluetoothinterface.interfaces.IDataHolder;
+import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.ArrayList;
 
@@ -11,6 +15,7 @@ import java.util.ArrayList;
 public class DataHolder implements IDataHolder, Cloneable {
     private ArrayList<String> availableDevices = new ArrayList<>();
     private ArrayList<String> selectedSensors = new ArrayList<>();
+    private ArrayList<ISensor> ISensors = new ArrayList<>();
 
     private DataHolder () {}
 
@@ -42,5 +47,13 @@ public class DataHolder implements IDataHolder, Cloneable {
 
     public void setSelectedSensors(String newSensor) {
         this.selectedSensors.add(newSensor);
+    }
+
+    public void setISensor(ISensor sensor) {
+        ISensors.add(sensor);
+    }
+
+    public ArrayList<ISensor> getISensor(){
+        return ISensors;
     }
 }
