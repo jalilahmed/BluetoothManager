@@ -40,7 +40,7 @@ class BTManager implements IBluetooth, Cloneable {
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
     //TODO: Use this array in StartReading Function made by Prashant
-    private ArrayList<Thread> threadList = new ArrayList<>();
+    private ArrayList<ReadStream> threadList = new ArrayList<>();
 
     // Callback Interface Declarations
     private IDiscoveryCallback discoveryCB;
@@ -269,9 +269,8 @@ class BTManager implements IBluetooth, Cloneable {
     }
 
     public void test() {
-
         sensorList.get(0).setState(SENSOR_STATE.CONNECTED);
-        sensorList.get(1).setState(SENSOR_STATE.CONNECTED);
+        //sensorList.get(1).setState(SENSOR_STATE.CONNECTED);
     }
 
     public void closeSocket(BluetoothSocket socket, ISensor sensor){
@@ -305,9 +304,12 @@ class BTManager implements IBluetooth, Cloneable {
                     //Create a thread and start reading
                     BluetoothSocket mySocket = findSocket(sensor.getName());
                     ReadStream thread = new ReadStream(sensor, mySocket, communicationCB);
+                    threadList.add(thread);
                     if (sensor.getState() == SENSOR_STATE.CONNECTED) {
+                        //TODO: What should we do if the state of ISensosr is not_Connected.
                         thread.start();
                         System.out.println("BTManager :: startReading for sensor " + sensorName);
+                        System.out.println("BTManager:: startReading state of thread" + thread.getState().toString());
                     }
                 } catch (Exception e) {
                     System.out.println("BTManager :startRead exception for sensor " + e.toString());

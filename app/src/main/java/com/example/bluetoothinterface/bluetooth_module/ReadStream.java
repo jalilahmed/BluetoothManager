@@ -59,8 +59,6 @@ class ReadStream implements Runnable{
                 Date startTime = new Date();
 
                 while (sensor.getState() == SENSOR_STATE.READING) {
-                    System.out.println("While loop reading");
-
                     //TODO: Stefan Wrote this in try catch block
                     SystemClock.sleep(250);
                     byte[] tmpBuffer = new byte[8192];
@@ -82,6 +80,7 @@ class ReadStream implements Runnable{
                             try {
                                 notProcessed = Arrays.copyOfRange(buffer, lastReadIndex + 1, lastReadIndex + notProcessedLength + 1);
                             } catch(Exception e) {
+                                //Todo: going in this exception :: Reaction??
                                 System.out.println("Exception in copying of range " + e.toString());
                             }
 //                          TODO Check if the replaced method of System.arraycopy is working good
@@ -144,6 +143,10 @@ class ReadStream implements Runnable{
                     communicationCB.onStartReading(sensor.getDevice());
                 }
             }
+        }
+
+        public Thread.State getState() {
+            return readStreamThread.getState();
         }
 
 }

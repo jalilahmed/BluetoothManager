@@ -67,6 +67,13 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
                 myInterface.startReading(selectedSensors.get(1));
             }
         });
+
+        LeftDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                myInterface.test();
+            }
+        });
     }
 
     public void initializeAllViews() {

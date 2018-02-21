@@ -20,7 +20,7 @@ class QMSensor implements IQMSensor {
         endCount = last5SecondsData.get(size - 1).getCount();
 
         double lostFramePercent = ((endCount - startCount) / size ) * 100;
-        return lostFramePercent;
+        return 1.0;
     }
 
 
