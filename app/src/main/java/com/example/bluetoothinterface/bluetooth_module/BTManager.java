@@ -1,6 +1,5 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -118,7 +117,7 @@ class BTManager implements IBluetooth, Cloneable {
 
                             if (device.getName() != null && device.getName().contains("miPod3")) {
                                 miPods.add(device);
-                                dataStore.setAvailableDevices(device.getName());
+                                dataStore.setAvailableSensors(device.getName());
                                 discoveryCB.onDevice();
                             }
                             break;
