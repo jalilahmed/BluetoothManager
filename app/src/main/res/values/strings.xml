@@ -6,7 +6,7 @@
     <string name="Select_and_start">Start</string>
     <string name="enable_bt">Enable BT</string>
     <string name="disconnect">Disconnect</string>
-    <string name="stop_reading">Stop Reading</string>
+    <string name="start_reading">Start Reading</string>
     <string name="connect">Connect</string>
     <string name="connected_status">Connected</string>
     <string name="reading_status">Reading</string>

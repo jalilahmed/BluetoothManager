@@ -18,7 +18,6 @@ class DataFrame {
         ConvertG(rawData);
     }
 
-
     private int getCount(byte[] rawData) {
         // unsigned bytes
         int count = (rawData[12] & 0xff) |
