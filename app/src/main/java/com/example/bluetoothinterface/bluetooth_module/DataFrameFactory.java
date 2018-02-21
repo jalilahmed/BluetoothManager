@@ -15,4 +15,12 @@ public class DataFrameFactory {
     public int getCount() {
         return frame.getCount();
     }
+
+    public int[] getA(){
+        return frame.getA();
+    }
+
+    public int[] getG(){
+        return frame.getG();
+    }
 }

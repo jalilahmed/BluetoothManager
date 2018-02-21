@@ -41,6 +41,8 @@ class BTManager implements IBluetooth, Cloneable {
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
     private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
+    //TODO: Use this array in StartReading Function made by Prashant
+    private ArrayList<Thread> threadList = new ArrayList<>();
 
     // Callback Interface Declarations
     private IDiscoveryCallback discoveryCB;
@@ -118,7 +120,7 @@ class BTManager implements IBluetooth, Cloneable {
 
                             if (device.getName() != null && device.getName().contains("miPod3")) {
                                 miPods.add(device);
-                                dataStore.setAvailableDevices(device.getName());
+                                dataStore.setAvailableSensors(device.getName());
                                 discoveryCB.onDevice();
                             }
                             break;
@@ -307,6 +309,7 @@ class BTManager implements IBluetooth, Cloneable {
     public void removeUICallback() {
         UICallback = null;
     }
+
     public void stopReading(String sensorName) {
         for (ISensor sensor : sensorList) {
             if (sensorName.equals(sensor.getName())) {

@@ -10,24 +10,17 @@ import java.util.List;
  */
 
 class QMSensor implements IQMSensor {
-    private int numberOfFramesLost;
 
-    public int lostFrames(List<DataFrameFactory> last5SecondsData) {
-        int currentCount;
-        int nextCount;
-        int differenceInCounts;
+    public double lostFrames(List<DataFrameFactory> last5SecondsData) {
+        int startCount;
+        int endCount;
+        int size = last5SecondsData.size();
 
-        for (int i = 0; i < (last5SecondsData.size() - 1); ++i) {
-            currentCount = last5SecondsData.get(i).getCount();
-            nextCount = last5SecondsData.get(i+1).getCount();
-            differenceInCounts = nextCount - currentCount;
+        startCount = last5SecondsData.get(0).getCount();
+        endCount = last5SecondsData.get(size - 1).getCount();
 
-            if (differenceInCounts != 0) {
-                numberOfFramesLost = differenceInCounts;
-            }
-        }
-
-        return numberOfFramesLost;
+        double lostFramePercent = ((endCount - startCount) / size ) * 100;
+        return lostFramePercent;
     }
 
 

@@ -1,6 +1,7 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -8,11 +9,11 @@ import java.util.List;
  */
 
 class DataFrame {
-    private List<Integer> frame = new ArrayList<>();
-    private int count;
+    //private List<Integer> frame = new ArrayList<>();
+    private int[] frame = new int[7];
 
     public DataFrame(byte[] rawData) {
-        count = getCount(rawData);
+        frame[0] = getCount(rawData);
         ConvertA(rawData);
         ConvertG(rawData);
     }
@@ -20,7 +21,7 @@ class DataFrame {
 
     private int getCount(byte[] rawData) {
         // unsigned bytes
-        count = (rawData[12] & 0xff) |
+        int count = (rawData[12] & 0xff) |
                 ((rawData[11] & 0xff) << 8) |
                 ((rawData[10] & 0xff) << 16) |
                 ((rawData[9] & 0xff) << 24);
@@ -31,27 +32,31 @@ class DataFrame {
         int ax = ((rawData[14] & 0xff) | (rawData[13] << 8));
         int ay = ((rawData[16] & 0xff) | (rawData[15] << 8));
         int az = ((rawData[18] & 0xff) | (rawData[17] << 8));
-        frame.add(ax);
-        frame.add(ay);
-        frame.add(az);
+        frame[1] = ax;
+        frame[2] = ay;
+        frame[3] = az;
     }
 
     private void ConvertG(byte[] rawData) {
         int gx = ((rawData[22] & 0xff) | (rawData[21] << 8));
         int gy = ((rawData[24] & 0xff) | (rawData[23] << 8));
         int gz = ((rawData[26] & 0xff) | (rawData[25] << 8));
-        frame.add(gx);
-        frame.add(gy);
-        frame.add(gz);
+        frame[4] = gx;
+        frame[5] = gy;
+        frame[6] = gz;
     }
 
 
     public int getCount() {
-        return count;
+        return frame[0];
     }
 
-    public  List<Integer> getFrame() {
-        return frame;
+    public  int[] getA() {
+        return Arrays.copyOfRange(frame, 1, 4);
+    }
+
+    public int[] getG() {
+        return Arrays.copyOfRange(frame, 4, frame.length);
     }
 
 }

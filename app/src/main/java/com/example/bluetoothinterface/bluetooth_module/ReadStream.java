@@ -56,7 +56,6 @@ class ReadStream implements Runnable{
             int notProcessedLength = 0;
             int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
-
             try {
                 Date startTime = new Date();
 
@@ -98,9 +97,10 @@ class ReadStream implements Runnable{
                     if((nowTime.getTime() - startTime.getTime())/1000 >= 5){
                         startTime = nowTime;
                         // Check for Lost Frames (Quality Check)
-                        int ISensorLostFrames = QMSensor.lostFrames(localData);
+                        //TODO:: Check Logic Here. if the percentage is working good.
+                        double ISensorLostFrames = QMSensor.lostFrames(localData);
 
-                        if (ISensorLostFrames >= 50) {
+                        if (ISensorLostFrames >= 50.0) {
                             sensor.setState(SENSOR_STATE.CONNECTED);
                             System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
                             break;
