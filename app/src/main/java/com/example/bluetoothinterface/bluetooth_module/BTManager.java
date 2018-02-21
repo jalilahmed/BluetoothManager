@@ -161,91 +161,81 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    public void connectToMiPods(ArrayList<String> miPodsDevicesNames) {
+    public void connectToMiPod(String miPodSensorName) {
         myBluetoothAdapter.cancelDiscovery();
 
-        setISensorList(miPodsDevicesNames);
+        setISensorList(miPodSensorName);
 
-        createSockets();
+        createSocket(miPodSensorName);
 
-        connectISensors();
-
-        startRead();
-
+        connectISensor(miPodSensorName);
     }
 
-    private void setISensorList(ArrayList<String> miPodsDevicesNames) {
+    private void setISensorList(String miPodSensorName) {
         for (BluetoothDevice device : miPods) {
-            if (miPodsDevicesNames.contains( device.getName() )) {
-                //listSensorToConnect.add(device);
+            if (miPodSensorName.equals(device.getName())) {
                 ISensor sensor = new Sensor( device, "left" );
                 sensorList.add(sensor);
             }
         }
     }
 
-    private void createSockets(){
-        bluetoothSockets.clear();
+    private void createSocket(String miPodSensorName){
+
         System.out.println("in BTManager::createScokets sensorList is:  " + sensorList);
+        BluetoothDevice device = null;
+
         for (final ISensor sensor : sensorList) {
-            BluetoothDevice device = sensor.getDevice();
-            try {
-                if (device != null) {
-                    // TODO: Get different UUIDs for sensors
-                    ParcelUuid[] uuids = device.getUuids();
-                    String uuid = uuids[0].toString();
-                    BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
-                    bluetoothSockets.add( socket );
-                    System.out.println("in BTManager: bluetoothSockets are: " + bluetoothSockets.toString());
-                }
-            } catch (final Exception e) {
-                communicationCB.onError(e.getMessage());
+            if (sensor.getName().equals(miPodSensorName)) {
+                device = sensor.getDevice();
             }
         }
-    }
 
-    private void connectISensors() {
-        for (final ISensor sensor : sensorList) {
-            final BluetoothDevice device = sensor.getDevice();
-            BluetoothSocket socket = null;
-            try {
-                socket = findSocket(device.getName());
-                socket.connect();
-                sensor.setState(SENSOR_STATE.CONNECTED);
-
-                // Callback for successful connection
-                if (communicationCB != null) {
-                    communicationCB.onConnect( device );
-                }
-            } catch (Exception e) {
-                try {
-                    socket.close();
-                    bluetoothSockets.remove(socket);
-                } catch (IOException exception) {
-                    System.out.println("in BTManager::connectISensors could not close socket");
-                }
-                final String errorMessage = e.toString();
-                if (communicationCB != null) {
-                    communicationCB.onConnectError(errorMessage);
-                    sensor.setState(SENSOR_STATE.NOT_CONNECTED);
-                }
-            }
-        }
-    }
-
-    private void startRead () {
-        // List<ISensor> from sensorList
         try {
-            for (ISensor sensor: sensorList) {
-                //Create a thread and start reading
-                BluetoothSocket mySocket = findSocket(sensor.getName());
-                ReadStream thread = new ReadStream(sensor, mySocket, communicationCB);
-                if (sensor.getState() == SENSOR_STATE.CONNECTED) {
-                    thread.start();
+            if (device != null) {
+                // TODO: Get different UUIDs for sensors
+                ParcelUuid[] uuids = device.getUuids();
+                String uuid = uuids[0].toString();
+                BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
+                bluetoothSockets.add(socket);
+                System.out.println("in BTManager: bluetoothSockets are: " + bluetoothSockets.toString());
+            }
+        } catch (final Exception e) {
+            communicationCB.onError(e.getMessage());
+        }
+    }
+
+    private void connectISensor(String miPodSensorName) {
+        for (final ISensor sensor : sensorList) {
+            BluetoothDevice device;
+
+            if (sensor.getName().equals(miPodSensorName)) {
+                device = sensor.getDevice();
+
+                BluetoothSocket socket = null;
+                try {
+                    socket = findSocket(device.getName());
+                    socket.connect();
+                    sensor.setState(SENSOR_STATE.CONNECTED);
+
+                    // Callback for successful connection
+                    if (communicationCB != null) {
+                        communicationCB.onConnect( device );
+                    }
+                } catch (Exception e) {
+                    try {
+                        socket.close();
+                        bluetoothSockets.remove(socket);
+                    } catch (IOException exception) {
+                        System.out.println("in BTManager::connectISensors could not close socket");
+                    }
+                    final String errorMessage = e.toString();
+                    if (communicationCB != null) {
+                        communicationCB.onConnectError(errorMessage);
+                        sensor.setState(SENSOR_STATE.NOT_CONNECTED);
+                    }
                 }
             }
-        } catch (Exception e) {
-            System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }
     }
 
@@ -305,10 +295,22 @@ class BTManager implements IBluetooth, Cloneable {
         UICallback = null;
     }
 
-    public void stopReading(String sensorName) {
+    public void startReading(String sensorName) {
         for (ISensor sensor : sensorList) {
             if (sensorName.equals(sensor.getName())) {
-                sensor.setState(SENSOR_STATE.CONNECTED);
+
+                try {
+                    //Create a thread and start reading
+                    BluetoothSocket mySocket = findSocket(sensor.getName());
+                    ReadStream thread = new ReadStream(sensor, mySocket, communicationCB);
+                    if (sensor.getState() == SENSOR_STATE.CONNECTED) {
+                        thread.start();
+                        System.out.println("BTManager :: startReading for sensor " + sensorName);
+                    }
+                } catch (Exception e) {
+                    System.out.println("BTManager :startRead exception for sensor " + e.toString());
+                }
+
             }
         }
     }

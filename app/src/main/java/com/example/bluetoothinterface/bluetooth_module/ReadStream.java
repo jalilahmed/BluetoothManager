@@ -1,6 +1,5 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
 
@@ -61,6 +60,7 @@ class ReadStream implements Runnable{
                 Date startTime = new Date();
 
                 while (sensor.getState() == SENSOR_STATE.READING) {
+                    System.out.println("While loop reading");
 
                     //TODO: Stefan Wrote this in try catch block
                     SystemClock.sleep(250);
@@ -83,9 +83,8 @@ class ReadStream implements Runnable{
                             try {
                                 notProcessed = Arrays.copyOfRange(buffer, lastReadIndex + 1, lastReadIndex + notProcessedLength + 1);
                             } catch(Exception e) {
-                                System.out.println(e.toString());
+                                System.out.println("Exception in copying of range " + e.toString());
                             }
-
 //                          TODO Check if the replaced method of System.arraycopy is working good
 //                            for (int i = 0; i < notProcessed.length; i++) {
 //                                buffer[i] = notProcessed[i];
@@ -139,6 +138,11 @@ class ReadStream implements Runnable{
                 readStreamThread = new Thread (this, threadName);
                 sensor.setState(SENSOR_STATE.READING);
                 readStreamThread.start();
+                System.out.println("ReadStream :: read thread start for sensor " + sensor.getName());
+
+                if (communicationCB != null) {
+                    communicationCB.onStartReading(sensor.getDevice());
+                }
             }
         }
 

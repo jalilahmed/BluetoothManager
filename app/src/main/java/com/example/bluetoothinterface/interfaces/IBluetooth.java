@@ -1,7 +1,5 @@
 package com.example.bluetoothinterface.interfaces;
 
-import java.util.ArrayList;
-
 /**
  * Created by jalil on 1/12/2018.
  */
@@ -14,11 +12,11 @@ public interface IBluetooth {
     void setPairedDevices();
     void discoverDevices();
     void stopDiscoverDevices();
-    void connectToMiPods(ArrayList<String> miPodsDevicesNames);
+    void connectToMiPod(String miPodSensorName);
     void test();
     //void closeSocket(BluetoothSocket socket);
     //void removeSensor(ISensor sensor);
-    void stopReading(String sensor);
+    void startReading(String sensor);
 
 
     // Discovery Callback methods
