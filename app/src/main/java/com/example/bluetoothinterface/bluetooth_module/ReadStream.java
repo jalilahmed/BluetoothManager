@@ -122,9 +122,7 @@ class ReadStream implements Runnable{
                 //TODO: Close socket and remove it from BTManage::bluetoothSockets, Corresponding Sensor's ISENSOR object from BTMANAGER::SensorList
                 // Found exception for connection
                 if (communicationCB != null) {
-                    communicationCB.onConnectionLost(sensor.getDevice());
-                    communicationCB.onStopReading(sensor.getDevice());
-
+//                    communicationCB.onConnectionLost(sensor.getDevice());
                 }
                 System.out.println("In ReadStream Thread " + threadName + "exception occurred");
                 IBTManager.closeSocket(socket, sensor);

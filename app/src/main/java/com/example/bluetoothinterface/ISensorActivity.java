@@ -92,11 +92,11 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         RightDisconnect = findViewById(R.id.ISensorRightDisconnectBtn);
 
         // Initially set all TV as red
-        LeftConnectedTV.setBackgroundColor(Color.RED);
-        RightConnectedTV.setBackgroundColor(Color.RED);
+        LeftConnectedTV.setTextColor(Color.RED);
+        RightConnectedTV.setTextColor(Color.RED);
 
-        LeftReadingTV.setBackgroundColor(Color.RED);
-        RightReadingTV.setBackgroundColor(Color.RED);
+        LeftReadingTV.setTextColor(Color.RED);
+        RightReadingTV.setTextColor(Color.RED);
 
         try {
             selectedSensors = dataStore.getSelectedSensors();
@@ -122,12 +122,12 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     @Override
     public void onConnect(BluetoothDevice device) {
         if (selectedSensors.size() == 1) {
-            LeftConnectedTV.setBackgroundColor(Color.GREEN);
+            LeftConnectedTV.setTextColor(Color.GREEN);
         } else {
             if (device.getName().equals(selectedSensors.get(0))) {
-                LeftConnectedTV.setBackgroundColor(Color.GREEN);
+                LeftConnectedTV.setTextColor(Color.GREEN);
             } else if (device.getName().equals(selectedSensors.get(1))) {
-                RightConnectedTV.setBackgroundColor(Color.GREEN);
+                RightConnectedTV.setTextColor(Color.GREEN);
             }
         }
 
@@ -138,37 +138,37 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     @Override
     public void onError(String message) {
         System.out.println( "ISensorActivity :: onError " + message);
-        myInterface.removeCommunicationCallback();
+//        myInterface.removeCommunicationCallback();
     }
 
     @Override
     public void onConnectError(String message) {
         System.out.println( "ISensorActivity :: onConnectError " + message );
-        myInterface.removeCommunicationCallback();
+//        myInterface.removeCommunicationCallback();
     }
 
     @Override
     public void onDisconnect(String message) {
         System.out.println( "ISensorActivity:: onDisconnect " + message );
-        myInterface.removeCommunicationCallback();
+//        myInterface.removeCommunicationCallback();
     }
 
     @Override
     public void onConnectionLost(BluetoothDevice device) {
         System.out.println("ISensorActivity onConnectionLost :: device is " + device.getName());
-        //LeftConnectedTV.setBackgroundColor(Color.RED);
+        LeftConnectedTV.setTextColor(Color.RED);
         System.out.println("ISensorActivity::Lost Communication with " + device.getName());
     }
 
     @Override
     public void onStartReading(BluetoothDevice device) {
         if (selectedSensors.size() == 1) {
-            LeftReadingTV.setBackgroundColor(Color.GREEN);
+            LeftReadingTV.setTextColor(Color.GREEN);
         } else {
             if (device.getName().equals(selectedSensors.get(0))) {
-                LeftReadingTV.setBackgroundColor(Color.GREEN);
+                LeftReadingTV.setTextColor(Color.GREEN);
             } else if (device.getName().equals(selectedSensors.get(1))) {
-                LeftReadingTV.setBackgroundColor(Color.GREEN);
+                LeftReadingTV.setTextColor(Color.GREEN);
             }
         }
     }
@@ -176,5 +176,15 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     @Override
     public void onStopReading(BluetoothDevice device) {
         System.out.println("in ISensorActivity::onStopReading ");
+
+        if (selectedSensors.size() == 1) {
+            LeftReadingTV.setTextColor(Color.RED);
+        } else {
+            if (device.getName().equals(selectedSensors.get(0))) {
+                LeftReadingTV.setTextColor(Color.RED);
+            } else if (device.getName().equals(selectedSensors.get(1))) {
+                LeftReadingTV.setTextColor(Color.RED);
+            }
+        }
     }
 }
