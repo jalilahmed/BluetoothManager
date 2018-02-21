@@ -20,9 +20,8 @@ class QMSensor implements IQMSensor {
         startCount = last5SecondsData.get(0).getCount();
         endCount = last5SecondsData.get(size - 1).getCount();
         lostFrames = endCount - (startCount + size - 1);
-        float percentage = (float) (lostFrames / (size + lostFrames ) ) * 100.f;
-        System.out.println("Frame Loss in percentage " + percentage);
-        System.out.println("Start Count :" + startCount + "  End Count :" + endCount + "  Frame Loss " + lostFrames + "\n\n\n");
+
+        System.out.println("Size : " + size + "   Start Count :" + startCount + "  End Count :" + endCount + "  Frame Loss " + lostFrames + "\n\n\n");
 
         return lostFrames;
     }

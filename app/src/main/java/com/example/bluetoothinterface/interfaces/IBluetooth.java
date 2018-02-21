@@ -25,7 +25,7 @@ public interface IBluetooth {
     void setDiscoveryCB(IDiscoveryCallback discoveryCB);
     void removeDiscoveryCallback();
     void setUICallback(IUICallback UICallback);
-    //void removeUICallback();
+    void removeUICallback();
 
     // Communication Callback methods
     void setCommunicationCB(ICommunicationCallback communicationCB);

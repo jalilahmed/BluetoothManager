@@ -14,4 +14,5 @@ public interface ICommunicationCallback {
     void onConnectionLost(BluetoothDevice device);
     void onStartReading(BluetoothDevice device);
     void onStopReading(BluetoothDevice device);
+    void onFramesLost(int framesLost, BluetoothDevice device);
 }

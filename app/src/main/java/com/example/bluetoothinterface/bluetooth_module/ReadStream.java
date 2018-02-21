@@ -99,6 +99,10 @@ class ReadStream implements Runnable{
                         //TODO:: Check Logic Here. if the percentage is working good.
                         int ISensorLostFrames = QMSensor.lostFrames(localData);
 
+                        if (communicationCB != null) {
+                            communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
+                        }
+
                         if (ISensorLostFrames >= 50000) {
                             sensor.setState(SENSOR_STATE.CONNECTED);
                             System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
