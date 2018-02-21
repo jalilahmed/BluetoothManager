@@ -10,4 +10,5 @@
     <string name="connect">Connect</string>
     <string name="connected_status">Connected</string>
     <string name="reading_status">Reading</string>
+    <string name="frames_lost">Frames Lost :</string>
 </resources>

@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
         if (dataStore.getSelectedSensors().size() != 0) {
             Intent startISensorIntent = new Intent(getApplicationContext(), ISensorActivity.class);
             startActivity(startISensorIntent);
+            myInterface.removeUICallback();
         } else {
             Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
         }

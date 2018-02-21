@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class ISensorActivity extends AppCompatActivity implements ICommunicationCallback{
 
     // UI Elements
-    TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV;
+    TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV, LeftFramesLost, RightFramesLost;
     Button ConnectLeftBtn, ConnectRightBtn, LeftStartReading, RightStartReading, LeftDisconnect, RightDisconnect;
 
     // Sensors
@@ -97,6 +97,9 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         RightStartReading = findViewById(R.id.ISensorRightStartReadingBtn);
         LeftDisconnect = findViewById(R.id.ISensorLeftDisconnectBtn);
         RightDisconnect = findViewById(R.id.ISensorRightDisconnectBtn);
+
+        LeftFramesLost = findViewById(R.id.LeftFramesLostTV);
+        RightFramesLost = findViewById(R.id.RightFramesLostTV);
 
         // Initially set all TV as red
         LeftConnectedTV.setTextColor(Color.RED);
@@ -212,6 +215,24 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
             }
         });
 
+    }
+
+    @Override
+    public void onFramesLost(final int framesLost, final BluetoothDevice device) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (selectedSensors.size() == 1) {
+                    LeftFramesLost.setText("Frames Lost : " + framesLost);
+                } else {
+                    if (device.getName().equals(selectedSensors.get(0))) {
+                        LeftFramesLost.setText("Frames Lost : " + framesLost);
+                    } else if (device.getName().equals(selectedSensors.get(1))) {
+                        RightFramesLost.setText("Frames Lost : " + framesLost);
+                    }
+                }
+            }
+        });
     }
 
 }
