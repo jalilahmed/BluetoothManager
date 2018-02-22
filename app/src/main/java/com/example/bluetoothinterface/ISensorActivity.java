@@ -33,7 +33,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     private IDataHolder dataStore = DataHolder.getInstance();
 
     // ISensor Object
-    ArrayList<ISensor> isensorList = dataStore.getISensor();
+    ArrayList<ISensor> iSensorList = dataStore.getISensor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,28 +63,28 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         LeftStartReading.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.startReading(isensorList.get(0));
+                myInterface.startReading( iSensorList.get(0));
             }
         });
 
         RightStartReading.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.startReading(isensorList.get(1));
+                myInterface.startReading( iSensorList.get(1));
             }
         });
 
         LeftDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.stopReading(isensorList.get(0));
+                myInterface.stopReading( iSensorList.get(0));
             }
         });
 
         RightDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.stopReading(isensorList.get(0));
+                myInterface.stopReading( iSensorList.get(1));
             }
         });
     }
