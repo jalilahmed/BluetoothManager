@@ -87,13 +87,11 @@ class ReadStream implements Runnable{
                             try {
                                 notProcessed = Arrays.copyOfRange(buffer, lastReadIndex + 1, lastReadIndex + notProcessedLength + 1);
                             } catch(Exception e) {
-                                //Todo: going in this exception :: Reaction??
-                                System.out.println("Exception in copying of range " + e.toString());
+                                e.printStackTrace();
                             }
                             System.arraycopy(notProcessed, 0, buffer, 0, notProcessed.length);
                         }
                     }
-
 
                     //TODO:: SORT THE DATA FRAMES IN RIGHT ORDER BEFORE QUALITY ASSESSMENT
                     Date nowTime = new Date();
@@ -121,12 +119,11 @@ class ReadStream implements Runnable{
                         communicationCB.onStopReading(sensor.getDevice());
                     }
                     System.out.println("In ReadStream Thread " + threadName + "exception occurred");
-                    IBTManager.closeSocket(socket, sensor);
+                    IBTManager.closeSocketAndStream(socket, sensor, mInputStream);
                 }
             }
             // Thread has stopped reading, callback for UI Thread
             if (communicationCB != null) {
-                //TODO: Close socket and remove it from BTManager, bluetoothSockets (CHECK IF NEEDED HERE >> IF NOT_NEEDED JUST SEND A CALLBACK)
                 communicationCB.onStopReading(sensor.getDevice());
             }
             if(sensor.getState() != SENSOR_STATE.CONNECTED) {

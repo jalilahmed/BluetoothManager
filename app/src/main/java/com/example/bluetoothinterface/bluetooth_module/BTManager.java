@@ -18,6 +18,7 @@ import com.example.bluetoothinterface.interfaces.ISensor;
 import com.example.bluetoothinterface.interfaces.IUICallback;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -76,13 +77,8 @@ class BTManager implements IBluetooth, Cloneable {
     /* Enable bluetooth on user request */
     public void enable() {
         if (myBluetoothAdapter != null) {
-            try {
-                UICallback.startBluetooth();
-                STATE = BT_STATES.ON;
-            } catch (Exception e) {
-                // TODO: Handle the exception ??
-                System.out.println(e.toString());
-            }
+            UICallback.startBluetooth();
+            STATE = BT_STATES.ON;
         }
     }
 
@@ -260,13 +256,14 @@ class BTManager implements IBluetooth, Cloneable {
         sensor.setState(SENSOR_STATE.CONNECTED);
     }
 
-    public void closeSocket(BluetoothSocket socket, ISensor sensor){
+    public void closeSocketAndStream(BluetoothSocket socket, ISensor sensor, InputStream mInputStream){
         System.out.println("Call came in BTManager::closeSocket.");
         try {
             sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             socket.close();
             bluetoothSockets.remove(socket);
             sensorList.remove(sensor);
+            mInputStream.close();
         } catch(IOException e){
             System.out.println("Exception occurred in BTManager::closeSockets while closing socket: " + socket.toString());
         }
