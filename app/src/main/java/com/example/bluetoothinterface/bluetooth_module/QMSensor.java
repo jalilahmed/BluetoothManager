@@ -18,7 +18,7 @@ class QMSensor implements IQMSensor {
         int size = last5SecondsData.size();
 
         startCount = last5SecondsData.get(0).getCount();
-        endCount = last5SecondsData.get(size - 1).getCount();
+        endCount = last5SecondsData.get(size - 1).getCount(); // because indexing is from 0
         lostFrames = endCount - (startCount + size - 1);
 
         System.out.println("Size : " + size + "   Start Count :" + startCount + "  End Count :" + endCount + "  Frame Loss " + lostFrames + "\n\n\n");

@@ -55,11 +55,11 @@ class ReadStream implements Runnable{
             int notProcessedLength = 0;
             int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
-            try {
-                Date startTime = new Date();
+            Date startTime = new Date();
 
-                while (sensor.getState() == SENSOR_STATE.READING) {
-                    //TODO: Stefan Wrote this in try catch block
+            while (sensor.getState() == SENSOR_STATE.READING) {
+
+                try {
                     SystemClock.sleep(250);
                     byte[] tmpBuffer = new byte[8192];
                     int bytes = mInputStream.read(tmpBuffer, 0, 8192);
@@ -113,19 +113,19 @@ class ReadStream implements Runnable{
                         break;
                     }
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
-                }
-                // Thread has stopped reading, callback for UI Thread
-                if (communicationCB != null) {
-                    //TODO: Close socket and remove it from BTManager, bluetoothSockets (CHECK IF NEEDED HERE >> IF NOT_NEEDED JUST SEND A CALLBACK)
+                } catch (IOException e) {
+                    if (communicationCB != null) {
+                        communicationCB.onConnectionLost(sensor.getDevice());
                         communicationCB.onStopReading(sensor.getDevice());
+                    }
+                    System.out.println("In ReadStream Thread " + threadName + "exception occurred");
+                    IBTManager.closeSocket(socket, sensor);
                 }
-            } catch (IOException e) {
-                if (communicationCB != null) {
-                    communicationCB.onConnectionLost(sensor.getDevice());
-                    communicationCB.onStopReading(sensor.getDevice());
-                }
-                System.out.println("In ReadStream Thread " + threadName + "exception occurred");
-                IBTManager.closeSocket(socket, sensor);
+            }
+            // Thread has stopped reading, callback for UI Thread
+            if (communicationCB != null) {
+                //TODO: Close socket and remove it from BTManager, bluetoothSockets (CHECK IF NEEDED HERE >> IF NOT_NEEDED JUST SEND A CALLBACK)
+                communicationCB.onStopReading(sensor.getDevice());
             }
             System.out.println("Stopping Thread: " + threadName);
         }
