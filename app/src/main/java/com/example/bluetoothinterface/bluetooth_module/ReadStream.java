@@ -92,23 +92,17 @@ class ReadStream implements Runnable{
                         }
                     }
 
+
+                    //TODO:: We can make these private functions
                     Date nowTime = new Date();
-                    if((nowTime.getTime() - startTime.getTime())/1000 >= 5){
+                    if((nowTime.getTime() - startTime.getTime())/1000 >= 5) {
                         startTime = nowTime;
                         // Check for Lost Frames (Quality Check)
-                        //TODO:: Check Logic Here. if the percentage is working good.
-                        int ISensorLostFrames = QMSensor.lostFrames(localData);
-
-                        if (communicationCB != null) {
-                            communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
-                        }
-
-                        if (ISensorLostFrames >= 50000) {
+                        if (checkLostFrames(localData)) {
                             sensor.setState(SENSOR_STATE.CONNECTED);
-                            System.out.println("In ReadStream Thread " + threadName + " : Frames Lost:" +  ISensorLostFrames);
+                            System.out.println("in ReadStream breaking while loop because of exceeding Frame lost limit!");
                             break;
                         }
-
                         sensor.setData(localData);
                         localData.clear();
                     }
@@ -153,6 +147,15 @@ class ReadStream implements Runnable{
 
         public Thread.State getState() {
             return readStreamThread.getState();
+        }
+
+        private boolean checkLostFrames(ArrayList<DataFrameFactory> Data) {
+            int ISensorLostFrames = QMSensor.lostFrames(Data);
+            if (communicationCB != null) {
+                communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
+            }
+            //TODO: 50 is too lest for 5 seconds of data.
+            return  (ISensorLostFrames >= 5000);
         }
 
 }

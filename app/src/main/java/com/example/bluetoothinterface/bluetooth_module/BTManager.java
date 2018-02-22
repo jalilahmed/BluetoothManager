@@ -37,7 +37,6 @@ class BTManager implements IBluetooth, Cloneable {
     private ArrayList<BluetoothDevice> miPods = new ArrayList<>();
     private ArrayList<ISensor> sensorList = new ArrayList<>();
     private ArrayList<BluetoothSocket> bluetoothSockets = new ArrayList<>();
-    private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private IDataHolder dataStore = DataHolder.getInstance();
 
     // Callback Interface Declarations
@@ -190,7 +189,6 @@ class BTManager implements IBluetooth, Cloneable {
 
         try {
             if (device != null) {
-                // TODO: Get different UUIDs for sensors
                 ParcelUuid[] uuids = device.getUuids();
                 String uuid = uuids[0].toString();
                 BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
@@ -265,6 +263,7 @@ class BTManager implements IBluetooth, Cloneable {
     public void closeSocket(BluetoothSocket socket, ISensor sensor){
         System.out.println("Call came in BTManager::closeSocket.");
         try {
+            sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             socket.close();
             bluetoothSockets.remove(socket);
             sensorList.remove(sensor);
