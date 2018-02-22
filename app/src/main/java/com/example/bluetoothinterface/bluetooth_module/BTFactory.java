@@ -11,8 +11,4 @@ public class BTFactory {
      public static IBluetooth getInstance() {
          return BTManager.getInstance();
      }
-
-
-
-
 }

@@ -1,5 +1,7 @@
 package com.example.bluetoothinterface.interfaces;
 
+import android.bluetooth.BluetoothDevice;
+
 import java.util.ArrayList;
 
 /**
@@ -13,4 +15,6 @@ public interface IDataHolder {
     ArrayList<String> getSelectedSensors();
     void setSelectedSensors(String newSensor);
 
+    ArrayList<ISensor> getISensor();
+    void setISensor(ISensor sensor);
 }

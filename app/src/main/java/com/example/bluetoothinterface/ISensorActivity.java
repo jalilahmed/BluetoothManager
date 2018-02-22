@@ -13,6 +13,7 @@ import com.example.bluetoothinterface.bluetooth_module.BTFactory;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
+import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.ArrayList;
 
@@ -22,12 +23,17 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV, LeftFramesLost, RightFramesLost;
     Button ConnectLeftBtn, ConnectRightBtn, LeftStartReading, RightStartReading, LeftDisconnect, RightDisconnect;
 
-    // Sensors
+    // Sensors Names
     ArrayList<String> selectedSensors = new ArrayList<>();
+
+
 
     // Bluetooth objects
     IBluetooth myInterface = BTFactory.getInstance();
     private IDataHolder dataStore = DataHolder.getInstance();
+
+    // ISensor Object
+    ArrayList<ISensor> isensorList = dataStore.getISensor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,28 +63,28 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         LeftStartReading.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.startReading(selectedSensors.get(0));
+                myInterface.startReading(isensorList.get(0));
             }
         });
 
         RightStartReading.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.startReading(selectedSensors.get(1));
+                myInterface.startReading(isensorList.get(1));
             }
         });
 
         LeftDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.stopReading(0);
+                myInterface.stopReading(isensorList.get(0));
             }
         });
 
         RightDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.stopReading(1);
+                myInterface.stopReading(isensorList.get(0));
             }
         });
     }

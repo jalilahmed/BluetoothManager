@@ -23,6 +23,7 @@ import com.example.bluetoothinterface.interfaces.IUICallback;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements IUICallback, IDiscoveryCallback {
+
     // UI Elements
     Button startDiscoveryScanBtn, startBtn, enableBTBtn;
     ListView btDevicesListView;
