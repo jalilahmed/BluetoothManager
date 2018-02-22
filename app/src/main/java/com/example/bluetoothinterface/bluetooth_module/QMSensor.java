@@ -34,4 +34,6 @@ class QMSensor implements IQMSensor {
         Date nowTime = new Date();
         return (nowTime.getTime() - lastReadTime.getTime())/1000 >= 10;
     }
+
+    //TODO: in a row lost packages.
 }

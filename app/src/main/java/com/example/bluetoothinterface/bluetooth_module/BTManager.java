@@ -287,6 +287,7 @@ class BTManager implements IBluetooth, Cloneable {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
             sensor.startReadISensor(mySocket, communicationCB);
+            System.out.println("in BTManager::startReading State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
         } catch (Exception e) {
             System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }

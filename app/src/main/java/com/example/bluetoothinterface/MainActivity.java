@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     private IDataHolder dataStore = DataHolder.getInstance();
 
     // Bluetooth objects
+    //TODO: Implement Interface in BTFactory.
     IBluetooth myInterface = BTFactory.getInstance();
     ArrayList<String> allSensors = dataStore.getAvailableSensors();
 

@@ -45,6 +45,7 @@ class ReadStream implements Runnable{
             socket = mySocket;
             QMSensor = new QMSensor();
             communicationCB  = BTManagerCommunicationCB;
+            // TODO: Close the inputStream before closing..
             try{
                 stream = socket.getInputStream();
             }catch(Exception e) {
@@ -61,6 +62,7 @@ class ReadStream implements Runnable{
             int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
             Date startTime = new Date();
+            //ToDO:: Change from sensor state to a boolean for while loop
 
             while (sensor.getState() == SENSOR_STATE.READING) {
 
@@ -93,7 +95,7 @@ class ReadStream implements Runnable{
                     }
 
 
-                    //TODO:: We can make these private functions
+                    //TODO:: SORT THE DATA FRAMES IN RIGHT ORDER BEFORE QUALITY ASSESSMENT
                     Date nowTime = new Date();
                     if((nowTime.getTime() - startTime.getTime())/1000 >= 5) {
                         startTime = nowTime;
@@ -113,6 +115,7 @@ class ReadStream implements Runnable{
                     }
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                 } catch (IOException e) {
+                    //ToDO: just throw exception and handle in Sensor Class..
                     if (communicationCB != null) {
                         communicationCB.onConnectionLost(sensor.getDevice());
                         communicationCB.onStopReading(sensor.getDevice());
@@ -154,7 +157,7 @@ class ReadStream implements Runnable{
             if (communicationCB != null) {
                 communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
             }
-            //TODO: 50 is too lest for 5 seconds of data.
+            //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
             return  (ISensorLostFrames >= 5000);
         }
 

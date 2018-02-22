@@ -77,9 +77,8 @@ class Sensor implements ISensor {
     public void startReadISensor(BluetoothSocket socket, ICommunicationCallback CommunicationCB) {
         //Todo: Handle Callback for exception
         try{
-            thread = new ReadStream(this, socket, CommunicationCB );
             if (state == SENSOR_STATE.CONNECTED){
-                // Todo: if state is different
+                thread = new ReadStream(this, socket, CommunicationCB );
                 thread.start();
             }
         } catch(Exception e){
@@ -88,7 +87,7 @@ class Sensor implements ISensor {
 
     }
 
-    public Thread.State getThreadStateISensor() {
+    public Thread.State getThreadState() {
         return thread.getState();
     }
 

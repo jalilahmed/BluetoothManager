@@ -26,5 +26,5 @@ public interface ISensor {
     List<DataFrameFactory> getData();
     void setLastReadTime(Date dateTimeNow);
     Date getLastReadTime();
-    Thread.State getThreadStateISensor();
+    Thread.State getThreadState();
 }
