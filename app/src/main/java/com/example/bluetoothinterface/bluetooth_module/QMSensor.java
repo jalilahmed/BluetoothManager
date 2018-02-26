@@ -3,7 +3,6 @@ package com.example.bluetoothinterface.bluetooth_module;
 import com.example.bluetoothinterface.interfaces.IQMSensor;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * Created by jalil on 2/6/2018.
@@ -11,98 +10,94 @@ import java.util.Date;
 
 class QMSensor implements IQMSensor {
 
-    private ArrayList<DataFrameFactory> buffer = new ArrayList<>();
+    private ArrayList<DataFrameFactory> unCheckedLocalBuffer = new ArrayList<>();
+    private boolean inARowLoss = false;
 
-    public int lostFrames(ArrayList<DataFrameFactory> last5SecondsData) {
+    public int lostFrames(ArrayList<DataFrameFactory> last5SecondsData) throws Exception {
 
-        ArrayList<DataFrameFactory> localData = new ArrayList<>();
+        ArrayList<DataFrameFactory> localDataBuffer = new ArrayList<>();
+        int numberOfFramesToProcess = 500; // 0 to 499 index
         int framesLost = 0;
 
-        int numberOfFramesToProcess = 500; // 0 to 499 index
-        int bufferSize = buffer.size();
-        int incomingDataSize = last5SecondsData.size();
-        int availableDataSize = bufferSize + incomingDataSize;
-//        System.out.println("Initial Buffer Size: " + bufferSize);
+        // Defining the necessary array sizes
+        int unCheckedLocalBufferSize = unCheckedLocalBuffer.size();
+        int newLocalDataSize = last5SecondsData.size();
+        int availableDataSize = unCheckedLocalBufferSize + newLocalDataSize;
 
-//        System.out.println("Incoming Size: " + incomingDataSize + "\tEnd Count: " + last5SecondsData.get(incomingDataSize - 1).getCount());
-//        System.out.println("Available Data Size : " + availableDataSize);
+        if (availableDataSize < numberOfFramesToProcess) {
+            throw new Exception("Not enough data for quality check");
+        }
+
+        int numberOfFramesLimitIndex = numberOfFramesToProcess - unCheckedLocalBufferSize;
+        //System.out.println("Initial notChecked Frames: " + unCheckedLocalBufferSize);
+
+        System.out.println("Incoming Size: " + newLocalDataSize + "\tStart Count: " + last5SecondsData.get(0).getCount()  +
+                "\tEnd Count: " + last5SecondsData.get(newLocalDataSize - 1).getCount());
+        //System.out.println("Available Data Size : " + availableDataSize);
 
         // Check if previously there was any buffer stored
-        if (bufferSize != 0) {
-            localData.addAll(buffer);
-            buffer.clear();
+        if (unCheckedLocalBufferSize != 0) {
+            localDataBuffer.addAll(unCheckedLocalBuffer);
+            unCheckedLocalBuffer.clear();
         }
 
         // Add only numberOfFramesToProcess limit in localData
-        int numberOfFramesLimitIndex = numberOfFramesToProcess - bufferSize - 1;
-//        System.out.println("Last possible index for Frames limit in local Data " + numberOfFramesLimitIndex);
         try {
             for (int i = 0; i < numberOfFramesLimitIndex; ++i) {
-                localData.add(last5SecondsData.get(i));
+                localDataBuffer.add(last5SecondsData.get(i));
             }
-            //TODO: Do the processing and throw Exception if necessary
-            int startCount = localData.get(0).getCount();
-            int endCount = localData.get(localData.size() - 1).getCount();
+            //TODO: Do the processing and callbacks from here ?
+            int startCount = localDataBuffer.get(0).getCount();
+            int endCount = localDataBuffer.get(localDataBuffer.size() - 1).getCount();
 
-            framesLost = endCount - startCount - numberOfFramesToProcess ;
-//            System.out.println("Available Data Size was : " + availableDataSize);
-//            System.out.println("LocalData : \tStart Count: " + localData.get(0).getCount() + " \tEnd Count: " + localData.get(localData.size() - 1).getCount());
-            System.out.println("Every 5 seconds lostFrames is " + framesLost);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            framesLost = (endCount - startCount) - numberOfFramesToProcess + 1;
 
-        // If there are more than numberOfFramesToProcess in 5 second data, then store the rest in buffer for next processing loop
-        try {
-            if (availableDataSize > numberOfFramesToProcess) {
-                for (int i = numberOfFramesLimitIndex + 1; i < incomingDataSize; ++i) {
-                    buffer.add(last5SecondsData.get(i));
+            // TODO: Check for lostframes in a row
+            // IF more than 20 set ifMoreThan20PacketsLoss = true
+            for (int i = 0; i < localDataBuffer.size() - 20; ++i) {
+                int initialCount = localDataBuffer.get(i).getCount();
+                int windowEndCount = localDataBuffer.get(i+19).getCount();
+
+                System.out.println("Inside local window of 20 " + "\t Start Count: " + initialCount + "\t Window end Count: " +windowEndCount);
+
+                if (windowEndCount - initialCount > 40) {
+                    System.out.println("Found 20 packets lost in local data");
+                    inARowLoss = true;
                 }
             }
+
+            //System.out.println("Quality Check : " + "Size: " + localDataBuffer.size() + "\tStart Count: " + localDataBuffer.get(0).getCount() + " \tEnd Count: " + localDataBuffer.get(localDataBuffer.size() - 1).getCount());
+            //System.out.println("Algorithm frameLost is  " + framesLost + "\n\n\n");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Exception in framesLost Logic " + e.toString());
         }
 
-//        System.out.println("5 second data size : " + size + "\n buffer size : " + bufferSize + "\n Local Data size : " + localData.size() + "\n\n");
-
-
-//        int lostFrames = 0;
-//
-//        for (int i = 0; i < 500; i+=20) {
-//
-//
-//            int localStartCount = localData.get(i).getCount();
-//            int localEndCount = localData.get(i + 100).getCount();
-//
-//            int localLostFrames = localEndCount - (localStartCount + 100 - 1);
-//
-//            lostFrames += localLostFrames;
-//
-//        }
-//        int startCount;
-//        int endCount;
-//
-//
-//        startCount = localData.get(0).getCount();
-//        endCount = localData.get(size - 1).getCount(); // because indexing is from 0
-//        lostFrames = endCount - (startCount + size - 1);
-//
-//        for (int i = 0; i < size; ++i) {
-//            int count = localData.get(i).getCount();
-//            System.out.println(count + "\n");
-//        }
-
-//        System.out.println("Size : " + size + "   Start Count :" + startCount + "  End Count :" + endCount + "  Frame Loss " + lostFrames + "\n\n\n");
+        // If there are more frames incoming than numberOfFramesToProcess, then store the rest in buffer for next processing loop
+        try {
+//            if (availableDataSize > numberOfFramesToProcess) {
+                for (int i = numberOfFramesLimitIndex; i < newLocalDataSize; ++i) {
+                    unCheckedLocalBuffer.add(last5SecondsData.get(i));
+                }
+//            }
+        } catch (Exception e) {
+            System.out.println("Exception in adding remaining data to buffer " + e.toString());
+        }
 
         return framesLost;
     }
 
-    public boolean shouldDisconnect(Date lastReadTime) {
+    public void clearAllBuffer() {
+        unCheckedLocalBuffer.clear();
+    }
+
+    public boolean shouldDisconnect() {
 
         // TODO: Need better logic ?
         // Not fired when sensor was out of range
-        Date nowTime = new Date();
-        return (nowTime.getTime() - lastReadTime.getTime())/1000 >= 10000;
+//        Date nowTime = new Date();
+//        return (nowTime.getTime() - lastReadTime.getTime())/1000 >= 10000;
+
+        return inARowLoss;
     }
 
     //TODO: in a row lost packages.

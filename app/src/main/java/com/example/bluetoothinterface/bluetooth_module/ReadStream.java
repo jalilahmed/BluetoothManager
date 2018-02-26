@@ -107,7 +107,7 @@ class ReadStream implements Runnable{
                         localData.clear();
                     }
 
-                    if (QMSensor.shouldDisconnect(sensor.getLastReadTime())) {
+                    if (QMSensor.shouldDisconnect()) {
                         System.out.println("Thread " + threadName + " is breaking coz of shouldDisconnect()");
                         break;
                     }
@@ -130,6 +130,9 @@ class ReadStream implements Runnable{
                 sensor.setState(SENSOR_STATE.CONNECTED);
             }
             System.out.println("Stopping Thread: " + threadName);
+
+            // Clearing Quality Check buffer
+            QMSensor.clearAllBuffer();
         }
 
         public void start () {
@@ -150,12 +153,17 @@ class ReadStream implements Runnable{
         }
 
         private boolean checkLostFrames(ArrayList<DataFrameFactory> Data) {
-            int ISensorLostFrames = QMSensor.lostFrames(Data);
+            int ISensorLostFrames = 0;
+            try {
+                ISensorLostFrames = QMSensor.lostFrames(Data);
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            }
+
             if (communicationCB != null) {
                 communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
             }
             //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
             return  (ISensorLostFrames >= 500000);
         }
-
 }
