@@ -63,14 +63,14 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         LeftStartReading.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.startReading( iSensorList.get(0));
+                myInterface.startReadingManually( iSensorList.get(0));
             }
         });
 
         RightStartReading.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                myInterface.startReading( iSensorList.get(1));
+                myInterface.startReadingManually( iSensorList.get(1));
             }
         });
 

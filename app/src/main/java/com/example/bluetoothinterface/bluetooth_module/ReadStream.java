@@ -155,7 +155,7 @@ class ReadStream implements Runnable{
                 communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
             }
             //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
-            return  (ISensorLostFrames >= 5000);
+            return  (ISensorLostFrames >= 500000);
         }
 
 }

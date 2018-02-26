@@ -20,7 +20,7 @@ public interface IBluetooth {
     void stopReading(ISensor sensor);
     void closeSocketAndStream(BluetoothSocket socket, ISensor sensor, InputStream inputStream);
     //void removeSensor(ISensor sensor);
-    void startReading(ISensor sensor);
+    void startReadingManually(ISensor sensor);
 
 
     // Discovery Callback methods

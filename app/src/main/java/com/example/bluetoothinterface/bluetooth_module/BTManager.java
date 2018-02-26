@@ -205,9 +205,20 @@ class BTManager implements IBluetooth, Cloneable {
             socket.connect();
             sensor.setState(SENSOR_STATE.CONNECTED);
 
+            startReading(sensor);
+
             // Callback for successful connection
             if (communicationCB != null) {
                 communicationCB.onConnect( device );
+            }
+
+            try {
+                //Create a thread and start reading
+                BluetoothSocket mySocket = findSocket(sensor.getName());
+                sensor.startReadISensor(mySocket, communicationCB);
+                System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
+            } catch (Exception e) {
+                System.out.println("BTManager :startRead exception for sensor " + e.toString());
             }
         } catch (Exception e) {
             try {
@@ -223,6 +234,17 @@ class BTManager implements IBluetooth, Cloneable {
             }
         }
 
+    }
+
+    private void startReading(ISensor sensor) {
+        try {
+            //Create a thread and start reading
+            BluetoothSocket mySocket = findSocket(sensor.getName());
+            sensor.startReadISensor(mySocket, communicationCB);
+            System.out.println("in BTManager::startReading State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
+        } catch (Exception e) {
+            System.out.println("BTManager :startRead exception for sensor " + e.toString());
+        }
     }
 
     public void setDiscoveryCB(IDiscoveryCallback inputDiscoveryCB) {
@@ -279,12 +301,12 @@ class BTManager implements IBluetooth, Cloneable {
         UICallback = null;
     }
 
-    public void startReading(ISensor sensor) {
+    public void startReadingManually(ISensor sensor) {
         try {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
             sensor.startReadISensor(mySocket, communicationCB);
-            System.out.println("in BTManager::startReading State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
+            System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
         } catch (Exception e) {
             System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }
