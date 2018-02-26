@@ -7,6 +7,7 @@ import android.provider.ContactsContract;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IQMSensor;
+import com.example.bluetoothinterface.interfaces.IQualityCheckCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.io.IOException;
@@ -16,7 +17,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.MissingResourceException;
 
 /**
  * Created by Prashant on 05/02/2018.
@@ -35,6 +35,7 @@ class ReadStream implements Runnable {
         private ICommunicationCallback communicationCB;
         private Thread.UncaughtExceptionHandler handler;
 
+        private IQualityCheckCallback qualityCheckCB;
 
         //  Public Attributes
         public List<Integer> data = new ArrayList<>();
@@ -42,14 +43,20 @@ class ReadStream implements Runnable {
         // BTManger Instance
         private IBluetooth IBTManager = BTManager.getInstance();
 
-        ReadStream(Sensor mySensor,BluetoothSocket mySocket,ICommunicationCallback CommunicationCallback,Thread.UncaughtExceptionHandler onConnectionLostHandler){
+
+        ReadStream(Sensor mySensor,
+                   BluetoothSocket mySocket,
+                   ICommunicationCallback BTManagerCommunicationCB,
+                   IQualityCheckCallback BTManagerQualityCheckCB ,
+                   Thread.UncaughtExceptionHandler onConnectionLostHandler){
             InputStream stream = null;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
             QMSensor = new QMSensor();
-            communicationCB = CommunicationCallback;
+            communicationCB = BTManagerCommunicationCB;
             handler = onConnectionLostHandler;
+            qualityCheckCB = BTManagerQualityCheckCB;
             try{
                 stream = socket.getInputStream();
             }catch(Exception e) {
@@ -108,7 +115,7 @@ class ReadStream implements Runnable {
                         localData.clear();
                     }
 
-                    if (QMSensor.shouldDisconnect(sensor.getLastReadTime())) {
+                    if (QMSensor.shouldDisconnect()) {
                         System.out.println("Thread " + threadName + " is breaking coz of shouldDisconnect()");
                         break;
                     }
@@ -130,15 +137,18 @@ class ReadStream implements Runnable {
             if(sensor.getState() != SENSOR_STATE.CONNECTED) {
                 sensor.setState(SENSOR_STATE.CONNECTED);
             }
+            // Clearing Quality Check buffer
+            QMSensor.clearAllBuffer();
             System.out.println("Stopping Thread: " + threadName);
         }
 
         public void start (){
             if (readStreamThread == null) {
                 readStreamThread = new Thread(this, threadName);
-                sensor.setState(SENSOR_STATE.READING);
+                sensor.setCanRead(true);
                 readStreamThread.setUncaughtExceptionHandler(handler);
                 readStreamThread.start();
+                sensor.setState(SENSOR_STATE.READING);
                 System.out.println("ReadStream :: read thread start for sensor " + sensor.getName());
                 if (communicationCB != null) {
                     communicationCB.onStartReading(sensor.getDevice());
@@ -162,11 +172,17 @@ class ReadStream implements Runnable {
         }
 
         private boolean checkLostFrames(ArrayList<DataFrameFactory> Data) {
-            int ISensorLostFrames = QMSensor.lostFrames(Data);
-            if (communicationCB != null) {
-                communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
+            int ISensorLostFrames = 0;
+            try {
+                ISensorLostFrames = QMSensor.lostFrames(Data);
+            } catch (Exception e) {
+                System.out.println(e.toString());
             }
-            return  (ISensorLostFrames >= 5000);
-        }
 
+            if (qualityCheckCB != null) {
+                qualityCheckCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
+            }
+            //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
+            return  (ISensorLostFrames >= 500000);
+        }
 }

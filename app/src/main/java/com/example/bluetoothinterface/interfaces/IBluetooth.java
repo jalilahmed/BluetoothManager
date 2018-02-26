@@ -32,4 +32,8 @@ public interface IBluetooth {
     // Communication Callback methods
     void setCommunicationCB(ICommunicationCallback communicationCB);
     void removeCommunicationCallback();
+
+    // Quality Check callback methods
+    void setQualityCheckCB(IQualityCheckCallback qualityCB);
+    void removeQualityCheckCallback();
 }
