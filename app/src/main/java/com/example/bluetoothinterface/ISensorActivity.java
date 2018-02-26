@@ -171,7 +171,6 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
 
     @Override
     public void onConnectionLost(final BluetoothDevice device) {
-        System.out.println("ISensorActivity onConnectionLost :: device is " + device.getName());
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -187,7 +186,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
             }
         });
 
-        System.out.println("ISensorActivity::Lost Communication with " + device.getName());
+        System.out.println("\n" + "ISensorActivity::Lost Communication with " + device.getName());
     }
 
     @Override
@@ -205,7 +204,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
 
     @Override
     public void onStopReading(final BluetoothDevice device) {
-        System.out.println("in ISensorActivity::onStopReading ");
+        System.out.println("\n in ISensorActivity::onStopReading ");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

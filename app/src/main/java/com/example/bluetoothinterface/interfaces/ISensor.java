@@ -29,4 +29,6 @@ public interface ISensor {
     Thread.State getThreadState();
     boolean getCanRead();
     void setCanRead(boolean canRead);
+    void joinThread();
+    void setOnConnectionLostHandler (Thread.UncaughtExceptionHandler handler);
 }

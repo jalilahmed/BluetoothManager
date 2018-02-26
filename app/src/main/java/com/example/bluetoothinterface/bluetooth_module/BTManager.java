@@ -170,7 +170,7 @@ class BTManager implements IBluetooth, Cloneable {
         ISensor sensor = null;
         for (BluetoothDevice device : miPods) {
             if (miPodSensorName.equals(device.getName())) {
-                sensor = new Sensor( device, "left", communicationCB);
+                sensor = new Sensor( device, "left");
                 sensorList.add(sensor);
                 dataStore.setISensor(sensor);
             }
@@ -178,16 +178,16 @@ class BTManager implements IBluetooth, Cloneable {
         return sensor;
     }
 
-    private void createSocket(ISensor sensor){
+    private void createSocket(final ISensor sensor){
 
         System.out.println("in BTManager::createScokets sensorList is:  " + sensorList);
-        BluetoothDevice device = sensor.getDevice();
+        final BluetoothDevice device = sensor.getDevice();
 
         try {
             if (device != null) {
                 ParcelUuid[] uuids = device.getUuids();
                 String uuid = uuids[0].toString();
-                BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
+                final BluetoothSocket socket = device.createRfcommSocketToServiceRecord(UUID.fromString(uuid));
                 bluetoothSockets.add(socket);
                 System.out.println("in BTManager: bluetoothSockets are: " + bluetoothSockets.toString());
             }
@@ -202,6 +202,7 @@ class BTManager implements IBluetooth, Cloneable {
         BluetoothSocket socket = null;
         try {
             socket = findSocket(device.getName());
+            setOnConnectionLostHandler(socket, sensor);
             socket.connect();
             sensor.setState(SENSOR_STATE.CONNECTED);
 
@@ -278,14 +279,13 @@ class BTManager implements IBluetooth, Cloneable {
         sensor.setState(SENSOR_STATE.CONNECTED);
     }
 
-    public void closeSocketAndStream(BluetoothSocket socket, ISensor sensor, InputStream mInputStream){
+    public void closeSocketAndStream(BluetoothSocket socket, ISensor sensor){
         System.out.println("Call came in BTManager::closeSocket.");
         try {
             sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             socket.close();
             bluetoothSockets.remove(socket);
             sensorList.remove(sensor);
-            mInputStream.close();
         } catch(IOException e){
             System.out.println("Exception occurred in BTManager::closeSockets while closing socket: " + socket.toString());
         }
@@ -310,6 +310,34 @@ class BTManager implements IBluetooth, Cloneable {
         } catch (Exception e) {
             System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }
+    }
+
+    private void setOnConnectionLostHandler(final BluetoothSocket socket, final ISensor sensor){
+        //TODO: Ask if Declaring Final is good????
+        final BluetoothDevice device = sensor.getDevice();
+        sensor.setOnConnectionLostHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable exception) {
+                System.out.println("Got Exception in Thread: " + thread.getName() + " Exception is: " + exception.getMessage());
+                sensor.setCanRead(false);
+                communicationCB.onStopReading(device);
+                sensor.setState(SENSOR_STATE.CONNECTED);
+                //TODO: Restarting Thread
+                thread.start();
+                try {
+                    thread.join(200);
+                } catch (InterruptedException e) {
+                    System.out.println("Exception occurred for thread.join() in: " + thread.getName());
+                }
+                if (!thread.isAlive()){
+                    closeSocketAndStream(socket, sensor);
+                    sensor.setState(SENSOR_STATE.NOT_CONNECTED);
+                    communicationCB.onConnectionLost(device);
+                } else {
+                    System.out.println("Thread is still Alive ");
+                }
+            }
+        });
     }
 
 }

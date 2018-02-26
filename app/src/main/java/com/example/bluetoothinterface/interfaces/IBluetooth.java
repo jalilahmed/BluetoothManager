@@ -18,7 +18,7 @@ public interface IBluetooth {
     void stopDiscoverDevices();
     void connectToMiPod(String miPodSensorName);
     void stopReading(ISensor sensor);
-    void closeSocketAndStream(BluetoothSocket socket, ISensor sensor, InputStream inputStream);
+    void closeSocketAndStream(BluetoothSocket socket, ISensor sensor);
     //void removeSensor(ISensor sensor);
     void startReadingManually(ISensor sensor);
 

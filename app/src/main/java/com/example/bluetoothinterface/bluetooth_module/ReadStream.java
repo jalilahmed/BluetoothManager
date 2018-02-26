@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.MissingResourceException;
 
 /**
  * Created by Prashant on 05/02/2018.
@@ -41,14 +42,14 @@ class ReadStream implements Runnable {
         // BTManger Instance
         private IBluetooth IBTManager = BTManager.getInstance();
 
-        ReadStream(Sensor mySensor,BluetoothSocket mySocket,  ICommunicationCallback BTManagerCommunicationCB){
+        ReadStream(Sensor mySensor,BluetoothSocket mySocket,ICommunicationCallback CommunicationCallback,Thread.UncaughtExceptionHandler onConnectionLostHandler){
             InputStream stream = null;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
             QMSensor = new QMSensor();
-            communicationCB  = BTManagerCommunicationCB;
-            // TODO: Close the inputStream before closing..
+            communicationCB = CommunicationCallback;
+            handler = onConnectionLostHandler;
             try{
                 stream = socket.getInputStream();
             }catch(Exception e) {
@@ -65,10 +66,7 @@ class ReadStream implements Runnable {
             int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
             Date startTime = new Date();
-            //ToDO:: Change from sensor state to a boolean for while loop
-
-            while (sensor.getState() == SENSOR_STATE.READING) {
-
+            while (sensor.getCanRead()) {
                 try {
                     SystemClock.sleep(250);
                     byte[] tmpBuffer = new byte[8192];
@@ -114,23 +112,18 @@ class ReadStream implements Runnable {
                         System.out.println("Thread " + threadName + " is breaking coz of shouldDisconnect()");
                         break;
                     }
-                    // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                 } catch (IOException e) {
-                    //ToDO: just throw exception and handle in Sensor Class..
-                    if (communicationCB != null) {
-                        communicationCB.onConnectionLost(sensor.getDevice());
-                        communicationCB.onStopReading(sensor.getDevice());
+                    //Comes here when Sensor is Out of Charge, or Out of Range!
+                    try {
+                        mInputStream.close();
+                    } catch (IOException e1) {
+                        System.out.println("Unable to Close Input Stream for thread: " + threadName);
                     }
-                    System.out.println("In ReadStream Thread " + threadName + "exception occurred");
-                    IBTManager.closeSocketAndStream(socket, sensor, mInputStream);
-                    // 1 - The while loop should throw exception we should use here a runtime exception
-                    // 2 - for the thread we will setUncaughtExceptionHandler which will be notified when excetion occurs.
-                    // 3 - CHeck if the thread is closed.
-                    // 4 - If closed then change state of sensor to connected.
-                    throw new RuntimeException("Exception in ReadStream:run()");
+                    // Todo: is throwing RunTimeException Good.
+                    throw new RuntimeException("Sensor is Off/ Out of Charge/ Out of Range!");
                 }
             }
-            // Thread has stopped reading, callback for UI Thread
+            // Comes here when Quality Test has Failed! Thread has stopped reading, callback for UI Thread
             if (communicationCB != null) {
                 communicationCB.onStopReading(sensor.getDevice());
             }
@@ -141,21 +134,6 @@ class ReadStream implements Runnable {
         }
 
         public void start (){
-            handler = new Thread.UncaughtExceptionHandler() {
-                @Override
-                public void uncaughtException(Thread thread, Throwable exception) {
-                    //TODO: Change ISensor canRead to False.
-                    //Todo: Callblack to change reading to read
-                    //todo: Check if thread is alive
-                    //todo: if dead then change state to not_connected
-                    //todo: closeSocket.
-                    System.out.print("Got Exception in Thread: " + thread.getName() + "Exception is: " + exception.toString());
-                    communicationCB.onConnectionLost(sensor.getDevice());
-                    communicationCB.onStopReading(sensor.getDevice());
-                    // TODO: Socket should be a private attribute of ISensor or it should be passed here.
-                    //IBTManager.closeSocket(socket, device);
-                }
-            };
             if (readStreamThread == null) {
                 readStreamThread = new Thread(this, threadName);
                 sensor.setState(SENSOR_STATE.READING);
@@ -172,13 +150,23 @@ class ReadStream implements Runnable {
             return readStreamThread.getState();
         }
 
+        public void joinThread() {
+            System.out.println("Call came in ReadStream.joinThread()");
+            try {
+                readStreamThread.join(200);
+                System.out.println("I Killed the Thread: " + readStreamThread.isAlive());
+
+            } catch (InterruptedException e) {
+                System.out.println("Exception in ReadStream.joinThread for thread: " + threadName);
+            }
+        }
+
         private boolean checkLostFrames(ArrayList<DataFrameFactory> Data) {
             int ISensorLostFrames = QMSensor.lostFrames(Data);
             if (communicationCB != null) {
                 communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
             }
-            //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
-            return  (ISensorLostFrames >= 500000);
+            return  (ISensorLostFrames >= 5000);
         }
 
 }

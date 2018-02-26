@@ -40,7 +40,6 @@ class QMSensor implements IQMSensor {
             for (int i = 0; i < numberOfFramesLimitIndex; ++i) {
                 localData.add(last5SecondsData.get(i));
             }
-            //TODO: Do the processing and throw Exception if necessary
             int startCount = localData.get(0).getCount();
             int endCount = localData.get(localData.size() - 1).getCount();
 
@@ -99,11 +98,8 @@ class QMSensor implements IQMSensor {
 
     public boolean shouldDisconnect(Date lastReadTime) {
 
-        // TODO: Need better logic ?
         // Not fired when sensor was out of range
         Date nowTime = new Date();
         return (nowTime.getTime() - lastReadTime.getTime())/1000 >= 10000;
     }
-
-    //TODO: in a row lost packages.
 }
