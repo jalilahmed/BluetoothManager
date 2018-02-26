@@ -102,10 +102,9 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
         if (!myInterface.isEnabled()) {
             try {
                 myInterface.enable();
-                System.out.println("Bluetooth enabled");
             }
             catch (Exception e) {
-                System.out.println( "Bluetooth cannot be enabled" );
+                e.printStackTrace();
             }
         }
     }

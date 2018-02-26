@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Created by Prashant on 05/02/2018.
@@ -33,7 +32,7 @@ class ReadStream implements Runnable {
         private IQMSensor QMSensor;
         private PackageToolbox packageToolbox = PackageToolbox.getInstance();
         private ICommunicationCallback communicationCB;
-    private Thread.UncaughtExceptionHandler handler;
+        private Thread.UncaughtExceptionHandler handler;
 
 
         //  Public Attributes
@@ -91,13 +90,11 @@ class ReadStream implements Runnable {
                             try {
                                 notProcessed = Arrays.copyOfRange(buffer, lastReadIndex + 1, lastReadIndex + notProcessedLength + 1);
                             } catch(Exception e) {
-                                //Todo: going in this exception :: Reaction??
-                                System.out.println("Exception in copying of range " + e.toString());
+                                e.printStackTrace();
                             }
                             System.arraycopy(notProcessed, 0, buffer, 0, notProcessed.length);
                         }
                     }
-
 
                     //TODO:: SORT THE DATA FRAMES IN RIGHT ORDER BEFORE QUALITY ASSESSMENT
                     Date nowTime = new Date();
@@ -120,6 +117,12 @@ class ReadStream implements Runnable {
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                 } catch (IOException e) {
                     //ToDO: just throw exception and handle in Sensor Class..
+                    if (communicationCB != null) {
+                        communicationCB.onConnectionLost(sensor.getDevice());
+                        communicationCB.onStopReading(sensor.getDevice());
+                    }
+                    System.out.println("In ReadStream Thread " + threadName + "exception occurred");
+                    IBTManager.closeSocketAndStream(socket, sensor, mInputStream);
                     // 1 - The while loop should throw exception we should use here a runtime exception
                     // 2 - for the thread we will setUncaughtExceptionHandler which will be notified when excetion occurs.
                     // 3 - CHeck if the thread is closed.
@@ -129,7 +132,6 @@ class ReadStream implements Runnable {
             }
             // Thread has stopped reading, callback for UI Thread
             if (communicationCB != null) {
-                //TODO: Close socket and remove it from BTManager, bluetoothSockets (CHECK IF NEEDED HERE >> IF NOT_NEEDED JUST SEND A CALLBACK)
                 communicationCB.onStopReading(sensor.getDevice());
             }
             if(sensor.getState() != SENSOR_STATE.CONNECTED) {
@@ -176,7 +178,7 @@ class ReadStream implements Runnable {
                 communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
             }
             //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
-            return  (ISensorLostFrames >= 5000);
+            return  (ISensorLostFrames >= 500000);
         }
 
 }

@@ -2,6 +2,8 @@ package com.example.bluetoothinterface.interfaces;
 
 import android.bluetooth.BluetoothSocket;
 
+import java.io.InputStream;
+
 /**
  * Created by jalil on 1/12/2018.
  */
@@ -16,9 +18,9 @@ public interface IBluetooth {
     void stopDiscoverDevices();
     void connectToMiPod(String miPodSensorName);
     void stopReading(ISensor sensor);
-    void closeSocket(BluetoothSocket socket, ISensor sensor);
+    void closeSocketAndStream(BluetoothSocket socket, ISensor sensor, InputStream inputStream);
     //void removeSensor(ISensor sensor);
-    void startReading(ISensor sensor);
+    void startReadingManually(ISensor sensor);
 
 
     // Discovery Callback methods
