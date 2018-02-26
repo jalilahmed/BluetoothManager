@@ -174,7 +174,7 @@ class BTManager implements IBluetooth, Cloneable {
         ISensor sensor = null;
         for (BluetoothDevice device : miPods) {
             if (miPodSensorName.equals(device.getName())) {
-                sensor = new Sensor( device, "left" );
+                sensor = new Sensor( device, "left", communicationCB);
                 sensorList.add(sensor);
                 dataStore.setISensor(sensor);
             }
@@ -208,7 +208,6 @@ class BTManager implements IBluetooth, Cloneable {
             socket = findSocket(device.getName());
             socket.connect();
             sensor.setState(SENSOR_STATE.CONNECTED);
-
             // Callback for successful connection
             if (communicationCB != null) {
                 communicationCB.onConnect( device );
@@ -292,6 +291,5 @@ class BTManager implements IBluetooth, Cloneable {
             System.out.println("BTManager :startRead exception for sensor " + e.toString());
         }
     }
-
 
 }

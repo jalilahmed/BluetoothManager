@@ -2,6 +2,7 @@ package com.example.bluetoothinterface.bluetooth_module;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
+import android.provider.ContactsContract;
 
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
@@ -15,12 +16,13 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Created by Prashant on 05/02/2018.
  */
 
-class ReadStream implements Runnable{
+class ReadStream implements Runnable {
 
         //  Private attributes
         private Thread readStreamThread;
@@ -31,6 +33,8 @@ class ReadStream implements Runnable{
         private IQMSensor QMSensor;
         private PackageToolbox packageToolbox = PackageToolbox.getInstance();
         private ICommunicationCallback communicationCB;
+    private Thread.UncaughtExceptionHandler handler;
+
 
         //  Public Attributes
         public List<Integer> data = new ArrayList<>();
@@ -116,12 +120,11 @@ class ReadStream implements Runnable{
                     // Till here, localData contains List<DataFrame>: each DataFrame has count and frame(ax,ay,az,gx,gy,gz)
                 } catch (IOException e) {
                     //ToDO: just throw exception and handle in Sensor Class..
-                    if (communicationCB != null) {
-                        communicationCB.onConnectionLost(sensor.getDevice());
-                        communicationCB.onStopReading(sensor.getDevice());
-                    }
-                    System.out.println("In ReadStream Thread " + threadName + "exception occurred");
-                    IBTManager.closeSocket(socket, sensor);
+                    // 1 - The while loop should throw exception we should use here a runtime exception
+                    // 2 - for the thread we will setUncaughtExceptionHandler which will be notified when excetion occurs.
+                    // 3 - CHeck if the thread is closed.
+                    // 4 - If closed then change state of sensor to connected.
+                    throw new RuntimeException("Exception in ReadStream:run()");
                 }
             }
             // Thread has stopped reading, callback for UI Thread
@@ -135,13 +138,28 @@ class ReadStream implements Runnable{
             System.out.println("Stopping Thread: " + threadName);
         }
 
-        public void start () {
+        public void start (){
+            handler = new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread thread, Throwable exception) {
+                    //TODO: Change ISensor canRead to False.
+                    //Todo: Callblack to change reading to read
+                    //todo: Check if thread is alive
+                    //todo: if dead then change state to not_connected
+                    //todo: closeSocket.
+                    System.out.print("Got Exception in Thread: " + thread.getName() + "Exception is: " + exception.toString());
+                    communicationCB.onConnectionLost(sensor.getDevice());
+                    communicationCB.onStopReading(sensor.getDevice());
+                    // TODO: Socket should be a private attribute of ISensor or it should be passed here.
+                    //IBTManager.closeSocket(socket, device);
+                }
+            };
             if (readStreamThread == null) {
-                readStreamThread = new Thread (this, threadName);
+                readStreamThread = new Thread(this, threadName);
                 sensor.setState(SENSOR_STATE.READING);
+                readStreamThread.setUncaughtExceptionHandler(handler);
                 readStreamThread.start();
                 System.out.println("ReadStream :: read thread start for sensor " + sensor.getName());
-
                 if (communicationCB != null) {
                     communicationCB.onStartReading(sensor.getDevice());
                 }

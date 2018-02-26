@@ -21,17 +21,29 @@ class Sensor implements ISensor {
     private SENSOR_STATE state;
     private String position;
     private ReadStream thread;
-
+    private boolean canRead;
+    private Thread.UncaughtExceptionHandler onConnectionLostHandler;
     private BluetoothDevice device;
     private List<DataFrameFactory> last5SecondsData;
     private Date timeOfLastRead;
+    private ICommunicationCallback communicationCallback;
 
-    Sensor(BluetoothDevice miPodSensor, String pos) {
+    Sensor(BluetoothDevice miPodSensor, String pos, ICommunicationCallback communicationCB) {
         name = miPodSensor.getName();
         macAddress = miPodSensor.getAddress();
         state = SENSOR_STATE.NOT_CONNECTED;
         position = pos;
         device = miPodSensor;
+        canRead = false;
+        communicationCallback = communicationCB;
+    }
+
+    public boolean getCanRead() {
+        return canRead;
+    }
+
+    public void setCanRead(boolean canRead) {
+        this.canRead = canRead;
     }
 
     public String getMacAddress() {
@@ -78,7 +90,9 @@ class Sensor implements ISensor {
         //Todo: Handle Callback for exception
         try{
             if (state == SENSOR_STATE.CONNECTED){
-                thread = new ReadStream(this, socket, CommunicationCB );
+                canRead = true;
+                setOnConnectionLostHandler();
+                thread = new ReadStream(this, socket, CommunicationCB);
                 thread.start();
             }
         } catch(Exception e){
@@ -89,6 +103,24 @@ class Sensor implements ISensor {
 
     public Thread.State getThreadState() {
         return thread.getState();
+    }
+
+    private void setOnConnectionLostHandler () {
+        onConnectionLostHandler = new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable exception) {
+                //TODO: Change ISensor canRead to False.
+                //Todo: Callblack to change reading to read
+                //todo: Check if thread is alive
+                //todo: if dead then change state to not_connected
+                //todo: closeSocket.
+                System.out.print("Got Exception in Thread: " + thread.getName() + "Exception is: " + exception.toString());
+                communicationCallback.onConnectionLost(device);
+                communicationCallback.onStopReading(device);
+                // TODO: Socket should be a private attribute of ISensor or it should be passed here.
+                //IBTManager.closeSocket(socket, device);
+            }
+        };
     }
 
 }

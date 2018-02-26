@@ -27,4 +27,6 @@ public interface ISensor {
     void setLastReadTime(Date dateTimeNow);
     Date getLastReadTime();
     Thread.State getThreadState();
+    boolean getCanRead();
+    void setCanRead(boolean canRead);
 }

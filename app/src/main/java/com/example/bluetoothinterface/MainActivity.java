@@ -23,7 +23,6 @@ import com.example.bluetoothinterface.interfaces.IUICallback;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements IUICallback, IDiscoveryCallback {
-
     // UI Elements
     Button startDiscoveryScanBtn, startBtn, enableBTBtn;
     ListView btDevicesListView;
@@ -35,7 +34,6 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     private IDataHolder dataStore = DataHolder.getInstance();
 
     // Bluetooth objects
-    //TODO: Implement Interface in BTFactory.
     IBluetooth myInterface = BTFactory.getInstance();
     ArrayList<String> allSensors = dataStore.getAvailableSensors();
 
@@ -43,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         //Setting Callback
         setCallbacks();
 
