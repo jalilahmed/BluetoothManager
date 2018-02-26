@@ -13,20 +13,19 @@ import com.example.bluetoothinterface.bluetooth_module.BTFactory;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
+import com.example.bluetoothinterface.interfaces.IQualityCheckCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.ArrayList;
 
-public class ISensorActivity extends AppCompatActivity implements ICommunicationCallback{
+public class ISensorActivity extends AppCompatActivity implements ICommunicationCallback, IQualityCheckCallback {
 
     // UI Elements
-    TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV, LeftFramesLost, RightFramesLost;
+    TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV, QualityCheckLeft, QualityCheckRight;
     Button ConnectLeftBtn, ConnectRightBtn, LeftStartReading, RightStartReading, LeftDisconnect, RightDisconnect;
 
     // Sensors Names
     ArrayList<String> selectedSensors = new ArrayList<>();
-
-
 
     // Bluetooth objects
     IBluetooth myInterface = BTFactory.getInstance();
@@ -41,6 +40,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         setContentView( R.layout.activity_isensor );
         // Setting Callback
         myInterface.setCommunicationCB(this);
+        myInterface.setQualityCheckCB(this);
 
         // Initializing all views
         initializeAllViews();
@@ -104,8 +104,8 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         LeftDisconnect = findViewById(R.id.ISensorLeftDisconnectBtn);
         RightDisconnect = findViewById(R.id.ISensorRightDisconnectBtn);
 
-        LeftFramesLost = findViewById(R.id.LeftFramesLostTV);
-        RightFramesLost = findViewById(R.id.RightFramesLostTV);
+        QualityCheckLeft = findViewById(R.id.LeftQualityCheckTV);
+        QualityCheckRight = findViewById(R.id.RightQualityCheckTV);
 
         // Initially set all TV as red
         LeftConnectedTV.setTextColor(Color.RED);
@@ -229,12 +229,27 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
             @Override
             public void run() {
                 if (selectedSensors.size() == 1) {
-                    LeftFramesLost.setText("Frames Lost : " + framesLost);
+                    QualityCheckLeft.setText(getString(R.string.frames_lost) + framesLost);
+                    if (framesLost < 3) {
+                        QualityCheckLeft.setTextColor(Color.GREEN);
+                    } else {
+                        QualityCheckLeft.setTextColor(Color.YELLOW);
+                    }
                 } else {
                     if (device.getName().equals(selectedSensors.get(0))) {
-                        LeftFramesLost.setText("Frames Lost : " + framesLost);
+                        QualityCheckLeft.setText(getString(R.string.frames_lost) + framesLost);
+                        if (framesLost < 3) {
+                            QualityCheckLeft.setTextColor(Color.GREEN);
+                        } else {
+                            QualityCheckLeft.setTextColor(Color.YELLOW);
+                        }
                     } else if (device.getName().equals(selectedSensors.get(1))) {
-                        RightFramesLost.setText("Frames Lost : " + framesLost);
+                        QualityCheckRight.setText(getString(R.string.frames_lost) + framesLost);
+                        if (framesLost < 3) {
+                            QualityCheckRight.setTextColor(Color.GREEN);
+                        } else {
+                            QualityCheckRight.setTextColor(Color.YELLOW);
+                        }
                     }
                 }
             }

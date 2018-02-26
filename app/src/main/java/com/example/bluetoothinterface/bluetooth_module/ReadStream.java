@@ -6,6 +6,7 @@ import android.os.SystemClock;
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IQMSensor;
+import com.example.bluetoothinterface.interfaces.IQualityCheckCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ class ReadStream implements Runnable{
         private IQMSensor QMSensor;
         private PackageToolbox packageToolbox = PackageToolbox.getInstance();
         private ICommunicationCallback communicationCB;
+        private IQualityCheckCallback qualityCheckCB;
 
         //  Public Attributes
         public List<Integer> data = new ArrayList<>();
@@ -38,13 +40,17 @@ class ReadStream implements Runnable{
         // BTManger Instance
         private IBluetooth IBTManager = BTManager.getInstance();
 
-        ReadStream(Sensor mySensor,BluetoothSocket mySocket,  ICommunicationCallback BTManagerCommunicationCB){
+        ReadStream(Sensor mySensor,
+                   BluetoothSocket mySocket,
+                   ICommunicationCallback BTManagerCommunicationCB,
+                   IQualityCheckCallback BTManagerQualityCheckCB){
             InputStream stream = null;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
             QMSensor = new QMSensor();
             communicationCB  = BTManagerCommunicationCB;
+            qualityCheckCB = BTManagerQualityCheckCB;
             // TODO: Close the inputStream before closing..
             try{
                 stream = socket.getInputStream();
@@ -160,8 +166,8 @@ class ReadStream implements Runnable{
                 System.out.println(e.toString());
             }
 
-            if (communicationCB != null) {
-                communicationCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
+            if (qualityCheckCB != null) {
+                qualityCheckCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
             }
             //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
             return  (ISensorLostFrames >= 500000);

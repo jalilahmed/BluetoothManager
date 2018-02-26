@@ -14,6 +14,7 @@ import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
+import com.example.bluetoothinterface.interfaces.IQualityCheckCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 import com.example.bluetoothinterface.interfaces.IUICallback;
 
@@ -44,6 +45,7 @@ class BTManager implements IBluetooth, Cloneable {
     private IDiscoveryCallback discoveryCB;
     private ICommunicationCallback communicationCB;
     private IUICallback UICallback;
+    private IQualityCheckCallback qualityCheckCB;
 
 
     // Definitions
@@ -215,7 +217,7 @@ class BTManager implements IBluetooth, Cloneable {
             try {
                 //Create a thread and start reading
                 BluetoothSocket mySocket = findSocket(sensor.getName());
-                sensor.startReadISensor(mySocket, communicationCB);
+                sensor.startReadISensor(mySocket, communicationCB, qualityCheckCB);
                 System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
             } catch (Exception e) {
                 System.out.println("BTManager :startRead exception for sensor " + e.toString());
@@ -240,7 +242,7 @@ class BTManager implements IBluetooth, Cloneable {
         try {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
-            sensor.startReadISensor(mySocket, communicationCB);
+            sensor.startReadISensor(mySocket, communicationCB, qualityCheckCB);
             System.out.println("in BTManager::startReading State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
         } catch (Exception e) {
             System.out.println("BTManager :startRead exception for sensor " + e.toString());
@@ -256,12 +258,20 @@ class BTManager implements IBluetooth, Cloneable {
         System.out.println("BTManager CommunicationCallback" + communicationCB);
     }
 
+    public void setQualityCheckCB(IQualityCheckCallback qualityCB) {
+        this.qualityCheckCB = qualityCB;
+    }
+
     public void removeDiscoveryCallback(){
         this.discoveryCB = null;
     }
 
     public void removeCommunicationCallback() {
         this.communicationCB = null;
+    }
+
+    public void removeQualityCheckCallback() {
+        this.qualityCheckCB = null;
     }
 
     private BluetoothSocket findSocket(String sensor) {
@@ -305,7 +315,7 @@ class BTManager implements IBluetooth, Cloneable {
         try {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
-            sensor.startReadISensor(mySocket, communicationCB);
+            sensor.startReadISensor(mySocket, communicationCB, qualityCheckCB);
             System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
         } catch (Exception e) {
             System.out.println("BTManager :startRead exception for sensor " + e.toString());

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
+import com.example.bluetoothinterface.interfaces.IQualityCheckCallback;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.Date;
@@ -74,11 +75,11 @@ class Sensor implements ISensor {
         return timeOfLastRead;
     }
 
-    public void startReadISensor(BluetoothSocket socket, ICommunicationCallback CommunicationCB) {
+    public void startReadISensor(BluetoothSocket socket, ICommunicationCallback CommunicationCB, IQualityCheckCallback qualityCheckCB) {
         //Todo: Handle Callback for exception
         try{
             if (state == SENSOR_STATE.CONNECTED){
-                thread = new ReadStream(this, socket, CommunicationCB );
+                thread = new ReadStream(this, socket, CommunicationCB, qualityCheckCB);
                 thread.start();
             }
         } catch(Exception e){

@@ -58,16 +58,16 @@ class QMSensor implements IQMSensor {
                 int initialCount = localDataBuffer.get(i).getCount();
                 int windowEndCount = localDataBuffer.get(i+19).getCount();
 
-                System.out.println("Inside local window of 20 " + "\t Start Count: " + initialCount + "\t Window end Count: " +windowEndCount);
+                //System.out.println("Inside local window of 20 " + "\t Start Count: " + initialCount + "\t Window end Count: " +windowEndCount);
 
                 if (windowEndCount - initialCount > 40) {
-                    System.out.println("Found 20 packets lost in local data");
+                    //System.out.println("Found 20 packets lost in local data");
                     inARowLoss = true;
                 }
             }
 
-            //System.out.println("Quality Check : " + "Size: " + localDataBuffer.size() + "\tStart Count: " + localDataBuffer.get(0).getCount() + " \tEnd Count: " + localDataBuffer.get(localDataBuffer.size() - 1).getCount());
-            //System.out.println("Algorithm frameLost is  " + framesLost + "\n\n\n");
+            System.out.println("Quality Check : " + "Size: " + localDataBuffer.size() + "\tStart Count: " + localDataBuffer.get(0).getCount() + " \tEnd Count: " + localDataBuffer.get(localDataBuffer.size() - 1).getCount());
+            System.out.println("Algorithm frameLost is  " + framesLost + "\n\n\n");
         } catch (Exception e) {
             System.out.println("Exception in framesLost Logic " + e.toString());
         }

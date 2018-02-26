@@ -20,7 +20,7 @@ public interface ISensor {
     void setState(SENSOR_STATE someState);
     String getPosition();
     BluetoothDevice getDevice();
-    void startReadISensor(BluetoothSocket socket, ICommunicationCallback CommunicationCB);
+    void startReadISensor(BluetoothSocket socket, ICommunicationCallback CommunicationCB, IQualityCheckCallback qualityCheckCB);
 
     void setData(List<DataFrameFactory> data5Seconds);
     List<DataFrameFactory> getData();
