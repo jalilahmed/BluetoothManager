@@ -31,8 +31,8 @@ class QMSensor implements IQMSensor {
         int numberOfFramesLimitIndex = numberOfFramesToProcess - unCheckedLocalBufferSize;
         //System.out.println("Initial notChecked Frames: " + unCheckedLocalBufferSize);
 
-        System.out.println("Incoming Size: " + newLocalDataSize + "\tStart Count: " + last5SecondsData.get(0).getCount()  +
-                "\tEnd Count: " + last5SecondsData.get(newLocalDataSize - 1).getCount());
+//        System.out.println("Incoming Size: " + newLocalDataSize + "\tStart Count: " + last5SecondsData.get(0).getCount()  +
+//                "\tEnd Count: " + last5SecondsData.get(newLocalDataSize - 1).getCount());
         //System.out.println("Available Data Size : " + availableDataSize);
 
         // Check if previously there was any buffer stored
@@ -66,7 +66,7 @@ class QMSensor implements IQMSensor {
                 }
             }
 
-            System.out.println("Quality Check : " + "Size: " + localDataBuffer.size() + "\tStart Count: " + localDataBuffer.get(0).getCount() + " \tEnd Count: " + localDataBuffer.get(localDataBuffer.size() - 1).getCount());
+//            System.out.println("Quality Check : " + "Size: " + localDataBuffer.size() + "\tStart Count: " + localDataBuffer.get(0).getCount() + " \tEnd Count: " + localDataBuffer.get(localDataBuffer.size() - 1).getCount());
             System.out.println("Algorithm frameLost is  " + framesLost + "\n\n\n");
         } catch (Exception e) {
             System.out.println("Exception in framesLost Logic " + e.toString());

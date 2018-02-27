@@ -2,7 +2,6 @@ package com.example.bluetoothinterface.bluetooth_module;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.SystemClock;
-import android.provider.ContactsContract;
 
 import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
@@ -41,22 +40,20 @@ class ReadStream implements Runnable {
         public List<Integer> data = new ArrayList<>();
 
         // BTManger Instance
-        private IBluetooth IBTManager = BTManager.getInstance();
+        private IBluetooth IBTManager = BTFactory.getInstance();
 
 
         ReadStream(Sensor mySensor,
                    BluetoothSocket mySocket,
-                   ICommunicationCallback BTManagerCommunicationCB,
-                   IQualityCheckCallback BTManagerQualityCheckCB ,
                    Thread.UncaughtExceptionHandler onConnectionLostHandler){
             InputStream stream = null;
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
             QMSensor = new QMSensor();
-            communicationCB = BTManagerCommunicationCB;
+            communicationCB = IBTManager.getCommunicationCB();
             handler = onConnectionLostHandler;
-            qualityCheckCB = BTManagerQualityCheckCB;
+            qualityCheckCB = IBTManager.getQualityCheckCB();
             try{
                 stream = socket.getInputStream();
             }catch(Exception e) {

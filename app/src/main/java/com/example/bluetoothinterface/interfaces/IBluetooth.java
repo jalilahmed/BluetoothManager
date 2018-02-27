@@ -2,8 +2,6 @@ package com.example.bluetoothinterface.interfaces;
 
 import android.bluetooth.BluetoothSocket;
 
-import java.io.InputStream;
-
 /**
  * Created by jalil on 1/12/2018.
  */
@@ -31,9 +29,11 @@ public interface IBluetooth {
 
     // Communication Callback methods
     void setCommunicationCB(ICommunicationCallback communicationCB);
+    ICommunicationCallback getCommunicationCB();
     void removeCommunicationCallback();
 
     // Quality Check callback methods
     void setQualityCheckCB(IQualityCheckCallback qualityCB);
+    IQualityCheckCallback getQualityCheckCB();
     void removeQualityCheckCallback();
 }
