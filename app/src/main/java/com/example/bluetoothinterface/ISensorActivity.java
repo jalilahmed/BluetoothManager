@@ -223,7 +223,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
     }
 
     @Override
-    public void onFramesLost(final int framesLost, final BluetoothDevice device) {
+    public void framesLost(final int framesLost, final BluetoothDevice device) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

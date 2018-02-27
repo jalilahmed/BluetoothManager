@@ -98,24 +98,10 @@ class ReadStream implements Runnable {
                         }
                     }
 
-                    //TODO:: SORT THE DATA FRAMES IN RIGHT ORDER BEFORE QUALITY ASSESSMENT
-                    Date nowTime = new Date();
-                    if((nowTime.getTime() - startTime.getTime())/1000 >= 5) {
-                        startTime = nowTime;
-                        // Check for Lost Frames (Quality Check)
-                        if (checkLostFrames(localData)) {
-                            sensor.setState(SENSOR_STATE.CONNECTED);
-                            System.out.println("in ReadStream breaking while loop because of exceeding Frame lost limit!");
-                            break;
-                        }
-                        sensor.setData(localData);
-                        localData.clear();
-                    }
+                    checkForQuality(localData, qualityCheckCB, sensor);
+                    sensor.setData(localData);
+                    localData.clear();
 
-                    if (QMSensor.shouldDisconnect()) {
-                        System.out.println("Thread " + threadName + " is breaking coz of shouldDisconnect()");
-                        break;
-                    }
                 } catch (IOException e) {
                     //Comes here when Sensor is Out of Charge, or Out of Range!
                     try {
@@ -168,18 +154,11 @@ class ReadStream implements Runnable {
             }
         }
 
-        private boolean checkLostFrames(ArrayList<DataFrameFactory> Data) {
-            int ISensorLostFrames = 0;
+        private void checkForQuality(ArrayList<DataFrameFactory> Data, IQualityCheckCallback qualityCheckCB, ISensor sensor) {
             try {
-                ISensorLostFrames = QMSensor.lostFrames(Data);
+                QMSensor.qualityCheckTest(Data, qualityCheckCB, sensor.getDevice());
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
-
-            if (qualityCheckCB != null) {
-                qualityCheckCB.onFramesLost(ISensorLostFrames, sensor.getDevice());
-            }
-            //TODO: 50 is too lest for 5 seconds of data. We need to check the lost frame faster.
-            return  (ISensorLostFrames >= 500000);
         }
 }

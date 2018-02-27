@@ -1,15 +1,12 @@
 package com.example.bluetoothinterface.bluetooth_module;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by Prashant on 05/02/2018.
  */
 
 class DataFrame {
-    //private List<Integer> frame = new ArrayList<>();
     private int[] frame = new int[7];
 
     public DataFrame(byte[] rawData) {

@@ -7,5 +7,5 @@ import android.bluetooth.BluetoothDevice;
  */
 
 public interface IQualityCheckCallback {
-    void onFramesLost(int framesLost, BluetoothDevice device);
+    void framesLost(int framesLost, BluetoothDevice device);
 }
