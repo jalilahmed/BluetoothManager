@@ -22,6 +22,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
 
     // UI Elements
     TextView LeftNameTV, RightNameTV, LeftConnectedTV, RightConnectedTV, LeftReadingTV, RightReadingTV, QualityCheckLeft, QualityCheckRight;
+    TextView LeftFramesLost, RightFramesLost, LeftLossPercent, RightLossPercent;
     Button ConnectLeftBtn, ConnectRightBtn, LeftStartReading, RightStartReading, LeftDisconnect, RightDisconnect;
 
     // Sensors Names
@@ -106,6 +107,11 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
 
         QualityCheckLeft = findViewById(R.id.LeftQualityCheckTV);
         QualityCheckRight = findViewById(R.id.RightQualityCheckTV);
+
+        LeftFramesLost = findViewById(R.id.LeftFramesLostTV);
+        RightFramesLost = findViewById(R.id.RightFramesLostTV);
+        LeftLossPercent = findViewById(R.id.LeftLossPercentTV);
+        RightLossPercent = findViewById(R.id.RightLossPercentTV);
 
         // Initially set all TV as red
         LeftConnectedTV.setTextColor(Color.RED);
@@ -228,27 +234,45 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
             @Override
             public void run() {
                 if (selectedSensors.size() == 1) {
-                    QualityCheckLeft.setText(getString(R.string.frames_lost) + framesLost);
-                    if (framesLost < 3) {
+                    LeftFramesLost.setText(getString(R.string.frames_lost) + framesLost);
+                    if (framesLost < 5) {
                         QualityCheckLeft.setTextColor(Color.GREEN);
                     } else {
                         QualityCheckLeft.setTextColor(Color.YELLOW);
                     }
                 } else {
                     if (device.getName().equals(selectedSensors.get(0))) {
-                        QualityCheckLeft.setText(getString(R.string.frames_lost) + framesLost);
-                        if (framesLost < 3) {
+                        LeftFramesLost.setText(getString(R.string.frames_lost) + framesLost);
+                        if (framesLost < 5) {
                             QualityCheckLeft.setTextColor(Color.GREEN);
                         } else {
                             QualityCheckLeft.setTextColor(Color.YELLOW);
                         }
                     } else if (device.getName().equals(selectedSensors.get(1))) {
-                        QualityCheckRight.setText(getString(R.string.frames_lost) + framesLost);
-                        if (framesLost < 3) {
+                        RightFramesLost.setText(getString(R.string.frames_lost) + framesLost);
+                        if (framesLost < 5) {
                             QualityCheckRight.setTextColor(Color.GREEN);
                         } else {
                             QualityCheckRight.setTextColor(Color.YELLOW);
                         }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void framesLostPercentage(final float percentage, final BluetoothDevice device) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (selectedSensors.size() == 1) {
+                    LeftLossPercent.setText(getString(R.string.frames_lost_percent) + percentage);
+                } else {
+                    if (device.getName().equals(selectedSensors.get(0))) {
+                        LeftLossPercent.setText(getString(R.string.frames_lost_percent) + percentage);
+                    } else if (device.getName().equals(selectedSensors.get(1))) {
+                        RightLossPercent.setText(getString(R.string.frames_lost_percent) + percentage);
                     }
                 }
             }

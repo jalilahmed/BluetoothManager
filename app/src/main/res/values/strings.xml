@@ -10,5 +10,8 @@
     <string name="connect">Connect</string>
     <string name="connected_status">Connected</string>
     <string name="reading_status">Reading</string>
-    <string name="frames_lost">Quality Check \n Frames Lost :</string>
+    <string name="quality">Sensor Data Quality</string>
+    <string name="frames_lost">Frames Lost: \t</string>
+    <string name="frames_lost_percent">Percentage: \t </string>
+
 </resources>
