@@ -14,9 +14,5 @@ public interface IQMSensor {
     void qualityCheck(ArrayList<DataFrameFactory> latestData,
                       IQualityCheckCallback qualityCheckCallback,
                       BluetoothDevice sensor) throws Exception;
-    void qualityCheckTest(ArrayList<DataFrameFactory> latestData,
-                      IQualityCheckCallback qualityCheckCallback,
-                      BluetoothDevice sensor) throws Exception;
-    boolean shouldDisconnect();
     void clearAllBuffer();
 }

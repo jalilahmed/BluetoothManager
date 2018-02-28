@@ -72,7 +72,7 @@ class ReadStream implements Runnable {
             Date startTime = new Date();
             while (sensor.getCanRead()) {
                 try {
-                    SystemClock.sleep(250);
+                    SystemClock.sleep(100);
                     byte[] tmpBuffer = new byte[8192];
                     int bytes = mInputStream.read(tmpBuffer, 0, 8192);
 
@@ -113,7 +113,7 @@ class ReadStream implements Runnable {
                     throw new RuntimeException("Sensor is Off/ Out of Charge/ Out of Range!");
                 }
             }
-            // Comes here when Quality Test has Failed! Thread has stopped reading, callback for UI Thread
+            // Thread has stopped reading, callback for UI Thread
             if (communicationCB != null) {
                 communicationCB.onStopReading(sensor.getDevice());
             }
@@ -156,7 +156,7 @@ class ReadStream implements Runnable {
 
         private void checkForQuality(ArrayList<DataFrameFactory> Data, IQualityCheckCallback qualityCheckCB, ISensor sensor) {
             try {
-                QMSensor.qualityCheckTest(Data, qualityCheckCB, sensor.getDevice());
+                QMSensor.qualityCheck(Data, qualityCheckCB, sensor.getDevice());
             } catch (Exception e) {
                 System.out.println(e.toString());
             }

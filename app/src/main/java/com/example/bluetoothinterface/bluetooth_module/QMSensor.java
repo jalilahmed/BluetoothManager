@@ -13,79 +13,9 @@ import java.util.ArrayList;
 
 class QMSensor implements IQMSensor {
 
-    private ArrayList<DataFrameFactory> unCheckedLocalBuffer = new ArrayList<>();
-    private ArrayList<DataFrameFactory> buffer = new ArrayList<>(500);
-    private boolean inARowLoss = false;
+    private ArrayList<DataFrameFactory> buffer = new ArrayList<>();
 
     public void qualityCheck(ArrayList<DataFrameFactory> latestData,
-                             IQualityCheckCallback qualityCheckCallback,
-                             BluetoothDevice sensor) throws Exception {
-
-        ArrayList<DataFrameFactory> localDataBuffer = new ArrayList<>();
-        int numberOfFramesToProcess = 500; // 0 to 499 index
-        int framesLost = 0;
-
-        // Defining the necessary array sizes
-        int unCheckedLocalBufferSize = unCheckedLocalBuffer.size();
-        int newLocalDataSize = latestData.size();
-        System.out.println("Incoming Data size " + newLocalDataSize);
-        int availableDataSize = unCheckedLocalBufferSize + newLocalDataSize;
-
-        if (availableDataSize < numberOfFramesToProcess) {
-            throw new Exception("Not enough data for quality check");
-        }
-
-        int numberOfFramesLimitIndex = numberOfFramesToProcess - unCheckedLocalBufferSize;
-        //System.out.println("Initial notChecked Frames: " + unCheckedLocalBufferSize);
-
-//        System.out.println("Incoming Size: " + newLocalDataSize + "\tStart Count: " + last5SecondsData.get(0).getCount()  +
-//                "\tEnd Count: " + last5SecondsData.get(newLocalDataSize - 1).getCount());
-        //System.out.println("Available Data Size : " + availableDataSize);
-
-        // Check if previously there was any buffer stored
-        if (unCheckedLocalBufferSize != 0) {
-            localDataBuffer.addAll(unCheckedLocalBuffer);
-            unCheckedLocalBuffer.clear();
-        }
-
-        // Add only numberOfFramesToProcess limit in localData
-        try {
-            for (int i = 0; i < numberOfFramesLimitIndex; ++i) {
-                localDataBuffer.add(latestData.get(i));
-            }
-            //TODO: Do the processing and callbacks from here ?
-            int startCount = localDataBuffer.get(0).getCount();
-            int endCount = localDataBuffer.get(localDataBuffer.size() - 1).getCount();
-
-            framesLost = (endCount - startCount) - numberOfFramesToProcess + 1;
-
-            if (qualityCheckCallback != null) {
-                qualityCheckCallback.framesLost(framesLost, sensor);
-            }
-
-//            System.out.println("Quality Check : " + "Size: " + localDataBuffer.size() + "\tStart Count: " + localDataBuffer.get(0).getCount() + " \tEnd Count: " + localDataBuffer.get(localDataBuffer.size() - 1).getCount());
-            System.out.println("Algorithm frameLost is  " + framesLost + "\n\n\n");
-        } catch (Exception e) {
-            System.out.println("Exception in framesLost Logic " + e.toString());
-        }
-
-        // If there are more frames incoming than numberOfFramesToProcess, then store the rest in buffer for next processing loop
-        try {
-//            if (availableDataSize > numberOfFramesToProcess) {
-                for (int i = numberOfFramesLimitIndex; i < newLocalDataSize; ++i) {
-                    unCheckedLocalBuffer.add(latestData.get(i));
-                }
-//            }
-        } catch (Exception e) {
-            System.out.println("Exception in adding remaining data to buffer " + e.toString());
-        }
-    }
-
-    public void clearAllBuffer() {
-        unCheckedLocalBuffer.clear();
-    }
-
-    public void qualityCheckTest(ArrayList<DataFrameFactory> latestData,
                             IQualityCheckCallback qualityCheckCallback,
                             BluetoothDevice sensor) throws Exception {
 
@@ -108,25 +38,32 @@ class QMSensor implements IQMSensor {
             }
 
             int lostFrames = lostFrames(buffer);
+            float percentageLoss = lostFramesPercentage(lostFrames);
+            //System.out.println("Percentage loss: " + percentageLoss);
 
             if (qualityCheckCallback != null) {
                 qualityCheckCallback.framesLost(lostFrames, sensor);
+                qualityCheckCallback.framesLostPercentage(percentageLoss, sensor);
             }
         }
     }
 
-    public boolean shouldDisconnect() {
-        return inARowLoss;
-    }
-
     private int lostFrames(ArrayList<DataFrameFactory> bufferData) {
         int startCount = bufferData.get(0).getCount();
-        int bufferEndCount = bufferData.get(bufferData.size() - 1).getCount();
-        int lostFrames = (bufferEndCount - startCount) - bufferData.size();
+        int endCount = bufferData.get(bufferData.size() - 1).getCount();
+        int lostFrames = (endCount - startCount) - bufferData.size() + 1; // Because counting starts from 0
 
-        System.out.println("bufferData Size: " + bufferData.size() + "\t Start Count: " + startCount + "\tEnd Count: " + bufferEndCount);
-        System.out.println("Lost Frames : " + lostFrames);
+        //System.out.println("bufferData Size: " + bufferData.size() + "\t Start Count: " + startCount + "\tEnd Count: " + endCount);
+        //System.out.println("Lost Frames : " + lostFrames);
 
         return lostFrames;
+    }
+
+    private float lostFramesPercentage(int lostFrames) {
+        return (lostFrames / 500.f) * 100.f;
+    }
+
+    public void clearAllBuffer() {
+        buffer.clear();
     }
 }
