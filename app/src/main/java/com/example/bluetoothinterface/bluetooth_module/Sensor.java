@@ -24,7 +24,7 @@ class Sensor implements ISensor {
     private boolean canRead;
     private Thread.UncaughtExceptionHandler onConnectionLostHandler;
     private BluetoothDevice device;
-    private List<DataFrameFactory> last5SecondsData;
+    private List<DataFrameFactory> latestData;
     private Date timeOfLastRead;
 
     // BTManger Instance
@@ -71,12 +71,12 @@ class Sensor implements ISensor {
         return device;
     }
 
-    public void setData(List<DataFrameFactory> data5Seconds) {
-        last5SecondsData = data5Seconds;
+    public void setData(List<DataFrameFactory> localData) {
+        latestData = localData;
     }
 
     public List<DataFrameFactory> getData() {
-        return last5SecondsData;
+        return latestData;
     }
 
     public void setLastReadTime(Date dateTimeNow) {

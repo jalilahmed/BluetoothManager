@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,7 +68,7 @@ class ReadStream implements Runnable {
             int notProcessedLength = 0;
             int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
-            Date startTime = new Date();
+            //Date startTime = new Date();
             while (sensor.getCanRead()) {
                 try {
                     SystemClock.sleep(100);
@@ -97,6 +96,10 @@ class ReadStream implements Runnable {
                             System.arraycopy(notProcessed, 0, buffer, 0, notProcessed.length);
                         }
                     }
+                    //Cross-check log with QMSensor buffer
+                    //ReadStream first count should be 1 plus the last read count of QMSensor buffer
+                    //This means all frames are checked in real-time (no lag)
+                    //System.out.println("ReadStream :: First read count: " + localData.get(0).getCount());
 
                     checkForQuality(localData, qualityCheckCB, sensor);
                     sensor.setData(localData);

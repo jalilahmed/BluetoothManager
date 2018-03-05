@@ -13,6 +13,6 @@ import java.util.ArrayList;
 public interface IQMSensor {
     void qualityCheck(ArrayList<DataFrameFactory> latestData,
                       IQualityCheckCallback qualityCheckCallback,
-                      BluetoothDevice sensor) throws Exception;
+                      BluetoothDevice sensor);
     void clearAllBuffer();
 }
