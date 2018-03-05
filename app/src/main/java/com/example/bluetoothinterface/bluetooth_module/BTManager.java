@@ -78,8 +78,19 @@ class BTManager implements IBluetooth, Cloneable {
     /* Enable bluetooth on user request */
     public void enable() {
         if (myBluetoothAdapter != null) {
-            UICallback.startBluetooth();
-            STATE = BT_STATES.ON;
+            if (!isEnabled()) {
+                myBluetoothAdapter.enable();
+                STATE = BT_STATES.ON;
+            }
+        }
+    }
+
+    public void disable() {
+        if (myBluetoothAdapter != null) {
+            if (isEnabled()) {
+                myBluetoothAdapter.disable();
+                STATE = BT_STATES.OFF;
+            }
         }
     }
 

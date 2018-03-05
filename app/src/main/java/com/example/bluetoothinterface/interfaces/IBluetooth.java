@@ -11,6 +11,7 @@ public interface IBluetooth {
     // BT Module methods
     boolean isEnabled();
     void enable();
+    void disable();
     void setPairedDevices();
     void discoverDevices();
     void stopDiscoverDevices();

@@ -1,6 +1,5 @@
 package com.example.bluetoothinterface;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -106,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
             catch (Exception e) {
                 e.printStackTrace();
             }
+        } else {
+            myInterface.disable();
         }
     }
 
@@ -123,12 +124,6 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
         } else {
             Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
         }
-    }
-
-    @Override
-    public void startBluetooth() {
-        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        this.startActivityForResult(enableBtIntent, 1);
     }
 
     @Override

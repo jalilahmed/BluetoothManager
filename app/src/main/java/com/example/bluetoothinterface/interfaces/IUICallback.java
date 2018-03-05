@@ -1,6 +1,5 @@
 package com.example.bluetoothinterface.interfaces;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 
@@ -9,6 +8,5 @@ import android.content.IntentFilter;
  */
 
 public interface IUICallback {
-    void startBluetooth();
     void registerReceiver(IntentFilter filter, BroadcastReceiver receiver);
 }
