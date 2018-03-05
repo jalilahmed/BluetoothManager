@@ -233,8 +233,9 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                String updateTextView = framesLost + "";
                 if (selectedSensors.size() == 1) {
-                    LeftFramesLost.setText(getString(R.string.frames_lost) + framesLost);
+                    LeftFramesLost.setText(updateTextView);
                     if (framesLost < 5) {
                         QualityCheckLeft.setTextColor(Color.GREEN);
                     } else {
@@ -242,14 +243,14 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
                     }
                 } else {
                     if (device.getName().equals(selectedSensors.get(0))) {
-                        LeftFramesLost.setText(getString(R.string.frames_lost) + framesLost);
+                        LeftFramesLost.setText(updateTextView);
                         if (framesLost < 5) {
                             QualityCheckLeft.setTextColor(Color.GREEN);
                         } else {
                             QualityCheckLeft.setTextColor(Color.YELLOW);
                         }
                     } else if (device.getName().equals(selectedSensors.get(1))) {
-                        RightFramesLost.setText(getString(R.string.frames_lost) + framesLost);
+                        RightFramesLost.setText(updateTextView);
                         if (framesLost < 5) {
                             QualityCheckRight.setTextColor(Color.GREEN);
                         } else {
@@ -266,13 +267,14 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                String updateTextView = percentage + "";
                 if (selectedSensors.size() == 1) {
-                    LeftLossPercent.setText(getString(R.string.frames_lost_percent) + percentage);
+                    LeftLossPercent.setText(updateTextView);
                 } else {
                     if (device.getName().equals(selectedSensors.get(0))) {
-                        LeftLossPercent.setText(getString(R.string.frames_lost_percent) + percentage);
+                        LeftLossPercent.setText(updateTextView);
                     } else if (device.getName().equals(selectedSensors.get(1))) {
-                        RightLossPercent.setText(getString(R.string.frames_lost_percent) + percentage);
+                        RightLossPercent.setText(updateTextView);
                     }
                 }
             }

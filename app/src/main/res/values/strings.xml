@@ -11,7 +11,11 @@
     <string name="connected_status">Connected</string>
     <string name="reading_status">Reading</string>
     <string name="quality">Sensor Data Quality</string>
-    <string name="frames_lost">Frames Lost: \t</string>
-    <string name="frames_lost_percent">Percentage: \t </string>
+    <string name="frames_lost_title">Frames Lost: \t</string>
+    <string name="frames_lost_left">0</string>
+    <string name="frames_lost_right">0</string>
+    <string name="frames_lost_percent_title">Percentage: \t </string>
+    <string name="frames_lost_percent_left">0.0</string>
+    <string name="frames_lost_percent_right">0.0</string>
 
 </resources>
