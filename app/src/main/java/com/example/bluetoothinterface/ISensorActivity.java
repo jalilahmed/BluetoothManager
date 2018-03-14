@@ -238,23 +238,29 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
                     LeftFramesLost.setText(updateTextView);
                     if (framesLost < 5) {
                         QualityCheckLeft.setTextColor(Color.GREEN);
-                    } else {
+                    } else if (framesLost < 10){
                         QualityCheckLeft.setTextColor(Color.YELLOW);
+                    } else {
+                        QualityCheckLeft.setTextColor(Color.RED);
                     }
                 } else {
                     if (device.getName().equals(selectedSensors.get(0))) {
                         LeftFramesLost.setText(updateTextView);
                         if (framesLost < 5) {
                             QualityCheckLeft.setTextColor(Color.GREEN);
-                        } else {
+                        } else if (framesLost < 10){
                             QualityCheckLeft.setTextColor(Color.YELLOW);
+                        } else {
+                            QualityCheckLeft.setTextColor(Color.RED);
                         }
                     } else if (device.getName().equals(selectedSensors.get(1))) {
                         RightFramesLost.setText(updateTextView);
                         if (framesLost < 5) {
                             QualityCheckRight.setTextColor(Color.GREEN);
-                        } else {
+                        } else if (framesLost < 10){
                             QualityCheckRight.setTextColor(Color.YELLOW);
+                        } else {
+                            QualityCheckRight.setTextColor(Color.RED);
                         }
                     }
                 }
