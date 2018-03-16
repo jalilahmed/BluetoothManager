@@ -2,6 +2,8 @@ package com.example.bluetoothinterface.interfaces;
 
 import android.bluetooth.BluetoothSocket;
 
+import java.util.ArrayList;
+
 /**
  * Created by jalil on 1/12/2018.
  */
@@ -18,6 +20,7 @@ public interface IBluetooth {
     void connectToMiPod(String miPodSensorName);
     void stopReading(ISensor sensor);
     void closeSocketAndStream(BluetoothSocket socket, ISensor sensor);
+    ArrayList<BluetoothSocket> getSockets();
     //void removeSensor(ISensor sensor);
     void startReadingManually(ISensor sensor);
 
