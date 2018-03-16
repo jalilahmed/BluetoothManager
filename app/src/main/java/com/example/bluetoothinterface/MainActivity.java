@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
                 Start();
             }
         } );
-
     }
 
     private void setCallbacks(){
@@ -124,6 +123,11 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
         } else {
             Toast.makeText(getApplicationContext(), "No sensors selected",  Toast.LENGTH_SHORT).show();
         }
+
+        // Debugging for Frames sorting mock
+        // ReadThreadMock runner = new ReadThreadMock();
+        // Thread thread = new Thread(runner);
+        // thread.start();
     }
 
     @Override

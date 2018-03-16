@@ -177,16 +177,23 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
 
     @Override
     public void onConnectionLost(final BluetoothDevice device) {
+        System.out.println("ISensor Activity :: on Connection lost");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (selectedSensors.size() == 1) {
                     LeftConnectedTV.setTextColor(Color.RED);
+                    LeftReadingTV.setTextColor(Color.RED);
+                    LeftFramesLost.setText(0);
                 } else {
                     if (device.getName().equals(selectedSensors.get(0))) {
                         LeftConnectedTV.setTextColor(Color.RED);
+                        LeftReadingTV.setTextColor(Color.RED);
+                        LeftFramesLost.setText(0);
                     } else if (device.getName().equals(selectedSensors.get(1))) {
                         RightConnectedTV.setTextColor(Color.RED);
+                        RightReadingTV.setTextColor(Color.RED);
+                        RightFramesLost.setText(0);
                     }
                 }
             }
