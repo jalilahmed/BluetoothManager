@@ -3,7 +3,6 @@ package com.example.bluetoothinterface.bluetooth_module;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
-import com.example.bluetoothinterface.interfaces.IBluetooth;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
 import java.util.Date;
@@ -28,7 +27,7 @@ class Sensor implements ISensor {
     private Date timeOfLastRead;
 
     // BTManger Instance
-    private IBluetooth IBTManager = BTFactory.getInstance();
+    // private IBluetooth IBTManager = BTFactory.getInstance();
 
     Sensor(BluetoothDevice miPodSensor, String pos) {
         name = miPodSensor.getName();
@@ -87,7 +86,7 @@ class Sensor implements ISensor {
         return timeOfLastRead;
     }
 
-    public void startReadISensor(BluetoothSocket socket) {
+    public void startReadISensor(BluetoothSocket socket) throws Exception {
         //Todo: Handle Callback for exception
 
         try{
@@ -96,7 +95,7 @@ class Sensor implements ISensor {
                 thread.start();
             }
         } catch(Exception e){
-            System.out.println("Exception in ISensor :" + name + " : " + e.toString());
+            throw new Exception("Exception in ISensor :" + name + " : " + e.toString());
         }
     }
 

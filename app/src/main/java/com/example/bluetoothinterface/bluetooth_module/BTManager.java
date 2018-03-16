@@ -208,6 +208,10 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
+    public ArrayList<BluetoothSocket> getSockets() {
+        return bluetoothSockets;
+    }
+
     private void connectISensor(ISensor sensor) {
         BluetoothDevice device = sensor.getDevice();
 
@@ -215,28 +219,33 @@ class BTManager implements IBluetooth, Cloneable {
         try {
             socket = findSocket(device.getName());
             setOnConnectionLostHandler(socket, sensor);
-            socket.connect();
-            sensor.setState(SENSOR_STATE.CONNECTED);
+            if (socket != null) {
+                socket.connect();
+                sensor.setState(SENSOR_STATE.CONNECTED);
 
-            startReading(sensor);
+                startReading(sensor);
 
-            // Callback for successful connection
-            if (communicationCB != null) {
-                communicationCB.onConnect( device );
-            }
+                // Callback for successful connection
+                if (communicationCB != null) {
+                    communicationCB.onConnect( device );
+                }
 
-            try {
-                //Create a thread and start reading
-                BluetoothSocket mySocket = findSocket(sensor.getName());
-                sensor.startReadISensor(mySocket);
-                System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
-            } catch (Exception e) {
-                System.out.println("BTManager :startRead exception for sensor " + e.toString());
+                try {
+                    //Create a thread and start reading
+                    BluetoothSocket mySocket = findSocket(sensor.getName());
+                    sensor.startReadISensor(mySocket);
+                    System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
+                } catch (Exception e) {
+                    // TODO: callback needed for failing to start read thread?
+                    System.out.println("Failed to start read thread. " + e.toString());
+                }
             }
         } catch (Exception e) {
             try {
-                socket.close();
-                bluetoothSockets.remove(socket);
+                if (socket != null) {
+                    socket.close();
+                    bluetoothSockets.remove(socket);
+                }
             } catch (IOException exception) {
                 System.out.println("in BTManager::connectISensors could not close socket");
             }
@@ -246,7 +255,6 @@ class BTManager implements IBluetooth, Cloneable {
                 sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             }
         }
-
     }
 
     private void startReading(ISensor sensor) {
@@ -255,7 +263,8 @@ class BTManager implements IBluetooth, Cloneable {
             BluetoothSocket mySocket = findSocket(sensor.getName());
             sensor.startReadISensor(mySocket);
         } catch (Exception e) {
-            System.out.println("BTManager :startRead exception for sensor " + e.toString());
+            // TODO: callback needed for failing to start read thread?
+            System.out.println("Failed to start read thread. " + e.toString());
         }
     }
 
@@ -340,7 +349,6 @@ class BTManager implements IBluetooth, Cloneable {
     }
 
     private void setOnConnectionLostHandler(final BluetoothSocket socket, final ISensor sensor){
-        //TODO: Ask if Declaring Final is good????
         final BluetoothDevice device = sensor.getDevice();
         sensor.setOnConnectionLostHandler(new Thread.UncaughtExceptionHandler() {
             @Override
@@ -352,6 +360,7 @@ class BTManager implements IBluetooth, Cloneable {
                 thread.start();
                 try {
                     thread.join(200);
+                    System.out.println("thread.join executed");
                 } catch (InterruptedException e) {
                     System.out.println("Exception occurred for thread.join() in: " + thread.getName());
                 }
@@ -365,5 +374,4 @@ class BTManager implements IBluetooth, Cloneable {
             }
         });
     }
-
 }
