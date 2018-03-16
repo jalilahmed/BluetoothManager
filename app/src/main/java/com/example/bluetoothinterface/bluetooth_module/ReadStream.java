@@ -14,6 +14,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -26,7 +28,6 @@ class ReadStream implements Runnable {
         private Thread readStreamThread;
         private String threadName;
         private ISensor sensor;
-        private BluetoothSocket socket;
         private InputStream mInputStream;
         private IQMSensor QMSensor;
         private PackageToolbox packageToolbox = PackageToolbox.getInstance();
@@ -38,14 +39,12 @@ class ReadStream implements Runnable {
         //  Public Attributes
         public List<Integer> data = new ArrayList<>();
 
-        // BTManger Instance
-        private IBluetooth IBTManager = BTFactory.getInstance();
-
-
         ReadStream(Sensor mySensor,
                    BluetoothSocket mySocket,
                    Thread.UncaughtExceptionHandler onConnectionLostHandler){
             InputStream stream = null;
+            BluetoothSocket socket;
+            IBluetooth IBTManager = BTFactory.getInstance();
             threadName = mySensor.getName();
             sensor = mySensor;
             socket = mySocket;
@@ -64,9 +63,9 @@ class ReadStream implements Runnable {
         @Override
         public void run() {
             byte [] buffer = new byte[16384];
-            int lastReadIndex = 0;
+            int lastReadIndex;
             int notProcessedLength = 0;
-            int loopCount = 0;
+            // int loopCount = 0;
             ArrayList<DataFrameFactory> localData = new ArrayList<>();
             //Date startTime = new Date();
             while (sensor.getCanRead()) {
@@ -96,10 +95,14 @@ class ReadStream implements Runnable {
                             System.arraycopy(notProcessed, 0, buffer, 0, notProcessed.length);
                         }
                     }
-                    //Cross-check log with QMSensor buffer
-                    //ReadStream first count should be 1 plus the last read count of QMSensor buffer
-                    //This means all frames are checked in real-time (no lag)
+                    /*
+                    * Cross-check log with QMSensor buffer
+                    * ReadStream first count should be 1 plus the last read count of QMSensor buffer
+                    * This means all frames are checked in real-time (no lag)
+                    * */
                     //System.out.println("ReadStream :: First read count: " + localData.get(0).getCount());
+
+                    sortLocalDataFrames(localData);
 
                     checkForQuality(localData, qualityCheckCB, sensor);
                     sensor.setData(localData);
@@ -107,6 +110,7 @@ class ReadStream implements Runnable {
 
                 } catch (IOException e) {
                     //Comes here when Sensor is Out of Charge, or Out of Range!
+//                    sensor.setCanRead(false);
                     try {
                         mInputStream.close();
                     } catch (IOException e1) {
@@ -139,6 +143,8 @@ class ReadStream implements Runnable {
                 if (communicationCB != null) {
                     communicationCB.onStartReading(sensor.getDevice());
                 }
+            } else {
+                readStreamThread.start();
             }
         }
 
@@ -163,5 +169,14 @@ class ReadStream implements Runnable {
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
+        }
+
+        private void sortLocalDataFrames(ArrayList<DataFrameFactory> unsortedLocalData) {
+            Collections.sort( unsortedLocalData, new Comparator<DataFrameFactory>() {
+                @Override
+                public int compare(DataFrameFactory dataFrameFactory, DataFrameFactory t1) {
+                    return Integer.compare(dataFrameFactory.getCount(), t1.getCount());
+                }
+            });
         }
 }
