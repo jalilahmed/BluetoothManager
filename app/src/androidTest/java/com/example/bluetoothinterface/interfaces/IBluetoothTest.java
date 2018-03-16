@@ -3,7 +3,6 @@ package com.example.bluetoothinterface.interfaces;
 import android.bluetooth.BluetoothAdapter;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.example.bluetoothinterface.DataHolder;
 import com.example.bluetoothinterface.bluetooth_module.BTFactory;
 
 import org.junit.Test;
