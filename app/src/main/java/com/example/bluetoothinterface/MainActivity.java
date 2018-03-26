@@ -13,11 +13,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.bluetoothinterface.bluetooth_module.BTFactory;
-import com.example.bluetoothinterface.interfaces.IBluetooth;
-import com.example.bluetoothinterface.interfaces.IDataHolder;
-import com.example.bluetoothinterface.interfaces.IDiscoveryCallback;
-import com.example.bluetoothinterface.interfaces.IUICallback;
+import com.phct.btmanagerlibrary.interfaces.IBluetooth;
+import com.phct.btmanagerlibrary.interfaces.IDataHolder;
+import com.phct.btmanagerlibrary.interfaces.IDiscoveryCallback;
+import com.phct.btmanagerlibrary.interfaces.IUICallback;
+import com.phct.btmanagerlibrary.module.BTFactory;
+import com.phct.btmanagerlibrary.module.DataHolder;
 
 import java.util.ArrayList;
 
@@ -61,7 +62,11 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
         btDevicesListView.setAdapter(btDevicesListViewAdapter);
 
         // Set all paired devices in DataStore
-        myInterface.setPairedDevices();
+        try {
+            myInterface.setPairedDevices();
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
 
         // Start discovery button onClick
         startDiscoveryScanBtn.setOnClickListener(new View.OnClickListener() {
@@ -104,9 +109,10 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
             catch (Exception e) {
                 e.printStackTrace();
             }
-        } else {
-            myInterface.disable();
         }
+//        else {
+//            myInterface.disable();
+//        }
     }
 
     public void startDiscovery() {
@@ -131,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     }
 
     @Override
-    public void registerReceiver(IntentFilter filter, BroadcastReceiver receiver) {
+    public void registerDiscoveryReceiver(IntentFilter filter, BroadcastReceiver receiver) {
         System.out.println("MainActivity:: registerReceiver");
         this.registerReceiver( receiver, filter );
     }

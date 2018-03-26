@@ -9,12 +9,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.bluetoothinterface.bluetooth_module.BTFactory;
-import com.example.bluetoothinterface.interfaces.IBluetooth;
-import com.example.bluetoothinterface.interfaces.ICommunicationCallback;
-import com.example.bluetoothinterface.interfaces.IDataHolder;
-import com.example.bluetoothinterface.interfaces.IQualityCheckCallback;
-import com.example.bluetoothinterface.interfaces.ISensor;
+
+import com.phct.btmanagerlibrary.interfaces.IBluetooth;
+import com.phct.btmanagerlibrary.interfaces.ICommunicationCallback;
+import com.phct.btmanagerlibrary.interfaces.IDataHolder;
+import com.phct.btmanagerlibrary.interfaces.IQualityCheckCallback;
+import com.phct.btmanagerlibrary.interfaces.ISensor;
+import com.phct.btmanagerlibrary.module.BTFactory;
+import com.phct.btmanagerlibrary.module.DataHolder;
 
 import java.util.ArrayList;
 
@@ -41,6 +43,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         setContentView( R.layout.activity_isensor );
         // Setting Callback
         myInterface.setCommunicationCB(this);
+        System.out.println("ISensor activity :: this : " + this);
         myInterface.setQualityCheckCB(this);
 
         // Initializing all views
@@ -293,5 +296,8 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
             }
         });
     }
+
+    @Override
+    public void framesLostInARow(boolean inARowLoss, BluetoothDevice device) {}
 
 }
