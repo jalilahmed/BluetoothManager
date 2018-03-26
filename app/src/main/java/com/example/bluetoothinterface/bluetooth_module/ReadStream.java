@@ -132,8 +132,7 @@ class ReadStream implements Runnable {
             System.out.println("Stopping Thread: " + threadName);
         }
 
-        public void start (){
-            if (readStreamThread == null) {
+        public void start () {
                 readStreamThread = new Thread(this, threadName);
                 sensor.setCanRead(true);
                 readStreamThread.setUncaughtExceptionHandler(handler);
@@ -143,9 +142,6 @@ class ReadStream implements Runnable {
                 if (communicationCB != null) {
                     communicationCB.onStartReading(sensor.getDevice());
                 }
-            } else {
-                readStreamThread.start();
-            }
         }
 
         public Thread.State getState() {
