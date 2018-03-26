@@ -13,6 +13,7 @@ import java.util.List;
  * Created by Prashant on 05/02/2018.
  */
 
+// TODO: Remove setState/ setCanRead ?
 public interface ISensor {
     String getName();
     String getMacAddress();

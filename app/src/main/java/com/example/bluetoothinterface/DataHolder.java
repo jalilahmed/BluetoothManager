@@ -1,8 +1,5 @@
 package com.example.bluetoothinterface;
 
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-
 import com.example.bluetoothinterface.interfaces.IDataHolder;
 import com.example.bluetoothinterface.interfaces.ISensor;
 
@@ -47,6 +44,7 @@ public class DataHolder implements IDataHolder, Cloneable {
 
     public void setSelectedSensors(String newSensor) {
         this.selectedSensors.add(newSensor);
+
     }
 
     public void setISensor(ISensor sensor) {
@@ -55,5 +53,9 @@ public class DataHolder implements IDataHolder, Cloneable {
 
     public ArrayList<ISensor> getISensor(){
         return ISensors;
+    }
+
+    public void removeISensor(ISensor sensor) {
+        ISensors.remove(sensor);
     }
 }

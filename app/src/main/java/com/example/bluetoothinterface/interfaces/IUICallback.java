@@ -8,5 +8,5 @@ import android.content.IntentFilter;
  */
 
 public interface IUICallback {
-    void registerReceiver(IntentFilter filter, BroadcastReceiver receiver);
+    void registerDiscoveryReceiver(IntentFilter filter, BroadcastReceiver receiver);
 }

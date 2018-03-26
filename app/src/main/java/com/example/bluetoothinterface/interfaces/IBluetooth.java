@@ -14,7 +14,7 @@ public interface IBluetooth {
     boolean isEnabled();
     void enable();
     void disable();
-    void setPairedDevices();
+    void setPairedDevices() throws Exception;
     void discoverDevices();
     void stopDiscoverDevices();
     void connectToMiPod(String miPodSensorName);

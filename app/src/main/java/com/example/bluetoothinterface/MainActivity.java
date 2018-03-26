@@ -61,7 +61,11 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
         btDevicesListView.setAdapter(btDevicesListViewAdapter);
 
         // Set all paired devices in DataStore
-        myInterface.setPairedDevices();
+        try {
+            myInterface.setPairedDevices();
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
 
         // Start discovery button onClick
         startDiscoveryScanBtn.setOnClickListener(new View.OnClickListener() {
@@ -104,9 +108,10 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
             catch (Exception e) {
                 e.printStackTrace();
             }
-        } else {
-            myInterface.disable();
         }
+//        else {
+//            myInterface.disable();
+//        }
     }
 
     public void startDiscovery() {
@@ -131,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements IUICallback, IDis
     }
 
     @Override
-    public void registerReceiver(IntentFilter filter, BroadcastReceiver receiver) {
+    public void registerDiscoveryReceiver(IntentFilter filter, BroadcastReceiver receiver) {
         System.out.println("MainActivity:: registerReceiver");
         this.registerReceiver( receiver, filter );
     }

@@ -94,12 +94,16 @@ class BTManager implements IBluetooth, Cloneable {
         }
     }
 
-    /* Sett all paired devices in dataStore */
-    public void setPairedDevices(){
+    /* Set all paired devices in dataStore */
+    public void setPairedDevices() throws Exception{
         Set<BluetoothDevice> temp = myBluetoothAdapter.getBondedDevices();
+        if (temp.size() == 0) {
+            throw new Exception("There are no paired sensors");
+        }
+        System.out.println("BTManager :: setPairedDevices :: bonded devices are : " + temp);
         if (temp.size()  > 0 ) {
             for (BluetoothDevice device : temp) {
-                if (device.getName().contains("miPod3")) {
+                if (device.getName().contains("miPod3") && !miPods.contains(device)) {
                     dataStore.setAvailableSensors(device.getName());
                     miPods.add(device);
                 }
@@ -145,16 +149,16 @@ class BTManager implements IBluetooth, Cloneable {
         };
         System.out.println("discoverDevices Started!!");
 
-        if (myBluetoothAdapter.isDiscovering()) {
-            myBluetoothAdapter.cancelDiscovery();
-        }
+//        if (myBluetoothAdapter.isDiscovering()) {
+//            myBluetoothAdapter.cancelDiscovery();
+//        }
 
         IntentFilter discoverDevicesIntent = new IntentFilter();
         discoverDevicesIntent.addAction( BluetoothDevice.ACTION_FOUND );
         discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_STATE_CHANGED );
         discoverDevicesIntent.addAction( BluetoothAdapter.ACTION_DISCOVERY_FINISHED );
 
-        UICallback.registerReceiver(discoverDevicesIntent, discoverDevicesReceiver);
+        UICallback.registerDiscoveryReceiver(discoverDevicesIntent, discoverDevicesReceiver);
 
         if (STATE == BT_STATES.ON) {
             STATE = BT_STATES.DISCOVERING;
@@ -179,10 +183,11 @@ class BTManager implements IBluetooth, Cloneable {
     }
 
     private ISensor setISensorList(String miPodSensorName) {
+        System.out.println("setISensorList :: miPods array : " + miPods);
         ISensor sensor = null;
         for (BluetoothDevice device : miPods) {
             if (miPodSensorName.equals(device.getName())) {
-                sensor = new Sensor( device, "left");
+                sensor = new MiPodSensor( device, "left");
                 sensorList.add(sensor);
                 dataStore.setISensor(sensor);
             }
@@ -192,7 +197,11 @@ class BTManager implements IBluetooth, Cloneable {
 
     private void createSocket(final ISensor sensor){
 
-        System.out.println("in BTManager::createScokets sensorList is:  " + sensorList);
+        System.out.println("in BTManager::createSockets sensorList is:  " + sensorList);
+        for (ISensor sensor_ : sensorList) {
+            System.out.println("Individual sensor in sensorList :: name : " + sensor_.getName());
+        }
+        System.out.println("in BTManager:: createSockets sensor is : " + sensor);
         final BluetoothDevice device = sensor.getDevice();
 
         try {
@@ -224,27 +233,21 @@ class BTManager implements IBluetooth, Cloneable {
                 sensor.setState(SENSOR_STATE.CONNECTED);
 
                 startReading(sensor);
+                sensor.getState();
 
                 // Callback for successful connection
                 if (communicationCB != null) {
-                    communicationCB.onConnect( device );
-                }
-
-                try {
-                    //Create a thread and start reading
-                    BluetoothSocket mySocket = findSocket(sensor.getName());
-                    sensor.startReadISensor(mySocket);
-                    System.out.println("in BTManager::startReadingManually State of thread of sensor: " + sensor.getName() + " is : " + sensor.getThreadState().toString());
-                } catch (Exception e) {
-                    // TODO: callback needed for failing to start read thread?
-                    System.out.println("Failed to start read thread. " + e.toString());
+                    communicationCB.onConnect(device);
                 }
             }
         } catch (Exception e) {
+            sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             try {
                 if (socket != null) {
                     socket.close();
                     bluetoothSockets.remove(socket);
+                    sensorList.remove(sensor);
+                    dataStore.removeISensor(sensor);
                 }
             } catch (IOException exception) {
                 System.out.println("in BTManager::connectISensors could not close socket");
@@ -252,19 +255,17 @@ class BTManager implements IBluetooth, Cloneable {
             final String errorMessage = e.toString();
             if (communicationCB != null) {
                 communicationCB.onConnectError(errorMessage);
-                sensor.setState(SENSOR_STATE.NOT_CONNECTED);
             }
         }
     }
 
-    private void startReading(ISensor sensor) {
+    private void startReading(ISensor sensor) throws Exception {
         try {
             //Create a thread and start reading
             BluetoothSocket mySocket = findSocket(sensor.getName());
             sensor.startReadISensor(mySocket);
         } catch (Exception e) {
-            // TODO: callback needed for failing to start read thread?
-            System.out.println("Failed to start read thread. " + e.toString());
+            throw new Exception(e.toString()); // Exception coming from MiPodSensor startReadISensor()
         }
     }
 
@@ -322,6 +323,7 @@ class BTManager implements IBluetooth, Cloneable {
             socket.close();
             bluetoothSockets.remove(socket);
             sensorList.remove(sensor);
+            dataStore.removeISensor(sensor);
         } catch(IOException e){
             System.out.println("Exception occurred in BTManager::closeSockets while closing socket: " + socket.toString());
         }
@@ -357,7 +359,12 @@ class BTManager implements IBluetooth, Cloneable {
                 sensor.setCanRead(false);
                 sensor.setState(SENSOR_STATE.CONNECTED);
                 //TODO: Restarting Thread
-                thread.start();
+                try {
+                    thread.start();
+                } catch (Exception e) {
+                    System.out.println("Exception " + e.toString());
+                }
+
                 try {
                     thread.join(200);
                     System.out.println("thread.join executed");

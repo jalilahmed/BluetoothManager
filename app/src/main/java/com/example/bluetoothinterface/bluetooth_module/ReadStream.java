@@ -39,14 +39,14 @@ class ReadStream implements Runnable {
         //  Public Attributes
         public List<Integer> data = new ArrayList<>();
 
-        ReadStream(Sensor mySensor,
+        ReadStream(MiPodSensor myMiPodSensor,
                    BluetoothSocket mySocket,
                    Thread.UncaughtExceptionHandler onConnectionLostHandler){
             InputStream stream = null;
             BluetoothSocket socket;
             IBluetooth IBTManager = BTFactory.getInstance();
-            threadName = mySensor.getName();
-            sensor = mySensor;
+            threadName = myMiPodSensor.getName();
+            sensor = myMiPodSensor;
             socket = mySocket;
             QMSensor = new QMSensor();
             communicationCB = IBTManager.getCommunicationCB();
@@ -109,7 +109,7 @@ class ReadStream implements Runnable {
                     localData.clear();
 
                 } catch (IOException e) {
-                    //Comes here when Sensor is Out of Charge, or Out of Range!
+                    //Comes here when MiPodSensor is Out of Charge, or Out of Range!
 //                    sensor.setCanRead(false);
                     try {
                         mInputStream.close();
@@ -117,7 +117,7 @@ class ReadStream implements Runnable {
                         System.out.println("Unable to Close Input Stream for thread: " + threadName);
                     }
                     // Todo: is throwing RunTimeException Good.
-                    throw new RuntimeException("Sensor is Off/ Out of Charge/ Out of Range!");
+                    throw new RuntimeException("MiPodSensor is Off/ Out of Charge/ Out of Range!");
                 }
             }
             // Thread has stopped reading, callback for UI Thread

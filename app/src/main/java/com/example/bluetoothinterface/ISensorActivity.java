@@ -41,6 +41,7 @@ public class ISensorActivity extends AppCompatActivity implements ICommunication
         setContentView( R.layout.activity_isensor );
         // Setting Callback
         myInterface.setCommunicationCB(this);
+        System.out.println("ISensor activity :: this : " + this);
         myInterface.setQualityCheckCB(this);
 
         // Initializing all views

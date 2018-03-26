@@ -13,7 +13,7 @@ import java.util.List;
  * Created by jalil on 1/23/2018.
  */
 
-class Sensor implements ISensor {
+class MiPodSensor implements ISensor {
 
     private String name;
     private String macAddress;
@@ -29,7 +29,7 @@ class Sensor implements ISensor {
     // BTManger Instance
     // private IBluetooth IBTManager = BTFactory.getInstance();
 
-    Sensor(BluetoothDevice miPodSensor, String pos) {
+    MiPodSensor(BluetoothDevice miPodSensor, String pos) {
         name = miPodSensor.getName();
         macAddress = miPodSensor.getAddress();
         state = SENSOR_STATE.NOT_CONNECTED;
@@ -87,8 +87,6 @@ class Sensor implements ISensor {
     }
 
     public void startReadISensor(BluetoothSocket socket) throws Exception {
-        //Todo: Handle Callback for exception
-
         try{
             if (state == SENSOR_STATE.CONNECTED){
                 thread = new ReadStream(this, socket, onConnectionLostHandler);

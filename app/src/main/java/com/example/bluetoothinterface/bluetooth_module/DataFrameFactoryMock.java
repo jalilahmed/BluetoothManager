@@ -13,7 +13,6 @@ public class DataFrameFactoryMock {
         frame = new DataFrameMock(rawData);
     }
 
-
     public int getCount() {
         return frame.getCount();
     }

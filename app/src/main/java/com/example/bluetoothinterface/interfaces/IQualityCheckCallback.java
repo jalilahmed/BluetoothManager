@@ -9,4 +9,5 @@ import android.bluetooth.BluetoothDevice;
 public interface IQualityCheckCallback {
     void framesLost(int framesLost, BluetoothDevice device);
     void framesLostPercentage(float percentage, BluetoothDevice device);
+    boolean framesLostInARow(BluetoothDevice device);
 }
